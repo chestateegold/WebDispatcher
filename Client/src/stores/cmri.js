@@ -4,7 +4,7 @@ import { HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/s
 
 const FRAME_SIZE = 3
 const EMPTY_FRAME = [0, 0, 0]
-const RECONNECT_DELAY_MS = 5000
+const RECONNECT_DELAY_MS = 1000
 
 function normalizeFramePayload(payload) {
   if (Array.isArray(payload)) {

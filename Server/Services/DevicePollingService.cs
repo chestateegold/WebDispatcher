@@ -14,16 +14,19 @@ namespace Server.Services
         private readonly ILogger<DevicePollingService> _logger;
         private readonly IHubContext<CmriHub> _hubContext;
         private readonly CmriService _cmriService;
+        private readonly CmriState _cmriState;
         private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250); // adjust as needed
 
         public DevicePollingService(
             ILogger<DevicePollingService> logger,
             IHubContext<CmriHub> hubContext,
-            CmriService cmriService)
+            CmriService cmriService,
+            CmriState cmriState)
         {
             _logger = logger;
             _hubContext = hubContext;
             _cmriService = cmriService;
+            _cmriState = cmriState;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,9 +41,11 @@ namespace Server.Services
                     {
                         var data = await _cmriService.ReadAsync(stoppingToken);
 
-                        if (data is not null)
+                        if (data is not null && !data.AsSpan().SequenceEqual(_cmriState.GetLastSentData()))
                         {
-                            //_logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
+                            _cmriState.SetLastSentData(data);
+
+                            _logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
 
                             // Send to all connected clients. Use a meaningful signal name and payload shape.
                             await _hubContext.Clients.All.SendAsync("ReceiveMessage", data, cancellationToken: stoppingToken);

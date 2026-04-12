@@ -24,6 +24,7 @@ builder.Services.AddSignalR();
 builder.Services.Configure<CmriOptions>(builder.Configuration.GetSection("Cmri"));
 
 // Register the CMRI-backed service and the background polling service.
+builder.Services.AddSingleton<CmriState>();
 builder.Services.AddSingleton<CmriService>();
 builder.Services.AddHostedService<DevicePollingService>();
 
