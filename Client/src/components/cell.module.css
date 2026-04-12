@@ -1,0 +1,44 @@
+.component {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+.layoutItem {
+  height: var(--panel-row-height);
+  background: rgba(34, 34, 34, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.svgFill {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rail {
+  stroke: var(--rail-stroke, #555);
+  transition: stroke 0.3s ease, opacity 0.18s ease, fill 0.3s ease;
+}
+
+.straight {
+  fill: none;
+  stroke-width: 8;
+}
+
+.blockEnd {
+  fill: none;
+  stroke-width: 2;
+}
+
+.polyline {
+  fill: var(--rail-fill, var(--rail-stroke, #555));
+  stroke: none;
+}

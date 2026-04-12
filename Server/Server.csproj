@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <Target Name="BuildClientApp" BeforeTargets="Build;Publish">
+    <Message Importance="high" Text="Building ClientApp (ClientApp)..." />
+    <!-- Adjust the path if your client folder name is different -->
+    <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm install" />
+    <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm run build" />
+    <ItemGroup>
+      <!-- Include all files from ClientApp/dist into the publish/output -->
+      <DistFiles Include="$(ProjectDir)..\Client\dist\**\*" />
+      <Content Include="%(DistFiles.Identity)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="CmriSubroutines">
+      <HintPath>..\..\CmriSubroutines\CmriSubroutines\bin\Debug\CmriSubroutines.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

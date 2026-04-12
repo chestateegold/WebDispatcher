@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>CMRI UI POC – Fixed Geometry</title>
+
+  <style>
+    :root {
+      --ui-scale: 1.5;
+    }
+
+    /* Page */
+    body {
+      margin: 0;
+      background: #111;
+      color: #ddd;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      touch-action: manipulation;
+    }
+
+    /* Outer container sizes to content, not screen */
+    .container {
+      background: #181818;
+      padding: 12px;
+      border-radius: 10px;
+      width: fit-content;
+      transform: scale(var(--ui-scale));
+      transform-origin: center;
+    }
+
+    /* Fixed-size panel grid */
+    .panel {
+      display: grid;
+      grid-template-columns: repeat(8, 80px);
+      grid-template-rows: 60px;
+      gap: 0px;
+      margin-bottom: 12px;
+    }
+
+    /* Fixed-size cells */
+    /* this might have to change at some point if we want to be able to line up switches more easily */
+    .cell {
+      width: 80px;
+      height: 60px;
+      background: #222;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Track blocks */
+    .track svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .rail {
+      stroke: #555;
+      transition: stroke 0.3s ease;
+    }
+
+    .straight {
+      stroke-width: 8;
+    }
+
+    .polyline {
+      fill: #555;
+      stroke: none;
+    }
+
+    .occupied .rail {
+      stroke: #d33;
+    }
+
+    /* Turnout */
+    .turnout {
+      cursor: pointer;
+    }
+
+    .turnout .rail {
+      stroke: #555;
+    }
+
+    /* Thin white outline behind the moving switch pieces */
+    .rail.switch-border {
+      stroke: #fff;
+      stroke-width: 10;
+      pointer-events: none;
+    }
+
+    /* Only toggle visibility of the two switch elements; other SVG parts remain visible */
+    .turnout .switch-normal,
+    .turnout .switch-reverse {
+      opacity: 0;
+      transition: opacity 0.18s ease, stroke 0.18s ease;
+    }
+
+    /* When not thrown: show the normal switch piece */
+    .turnout:not(.thrown) .switch-normal {
+      opacity: 1;
+    }
+
+    /* When thrown: show the reverse switch piece */
+    .turnout.thrown .switch-reverse {
+      opacity: 1;
+    }
+
+
+    /* Signals removed in this build (occupancy-only start) */
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 0.9em;
+      border-radius: 6px;
+      border: none;
+      background: #333;
+      color: #ddd;
+    }
+
+    button:active {
+      background: #444;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Layout Panel -->
+    <div class="panel">
+
+      <!-- Track Block 1 -->
+      <div class="cell track" id="block1">
+        <svg viewBox="0 0 100 20" aria-label="Track Block 1">
+          <line x1="1" y1="10" x2="99" y2="10" class="straight rail" />
+        </svg>
+      </div>
+
+      <!-- Cross Over -->
+      <div class="cell track" id="crossover1">
+        <svg viewBox="0 0 100 20">
+          <polygon points="20,-15 40,5 50,5 25,-20" class="polyline rail" />
+
+          <!--
+          <line x1="1" y1="10" x2="99" y2="10" class="straight rail" />
+        -->
+          <polygon points="1,6 99,6 99,14 1,14" class="polyline rail" />
+          <polygon points="75,40 50,15 60,15 80,35" class="polyline rail" />
+        
+        </svg>
+      </div>
+
+      <!-- Left-hand flipped over X axis -->
+      <div class="cell turnout" id="switch3">
+        <svg viewBox="0 0 100 60" aria-label="Left-hand switch flipped vertical">
+          <g transform="translate(0,60) scale(1,-1)">
+          <!-- Mainline -->
+          <line x1="1" y1="30" x2="30" y2="30" class="straight rail" />
+          <line x1="55" y1="30" x2="99" y2="30" class="straight rail" />
+
+          <!-- Diverging route (single joined polyline to avoid gaps at the corner) -->
+          <polyline points="52,18 60,10 99,10" class="straight rail" />
+
+          <!-- Switch normal (border behind + visible element) -->
+          <line x1="30" y1="30" x2="55" y2="30" class="straight rail switch-border switch-normal" />
+          <line x1="31" y1="30" x2="54" y2="30" class="straight rail switch-normal" />
+
+          <!-- Switch reversed (border behind + visible element) -->
+          <polyline points="30,30 40,30 52,18" class="straight rail switch-border switch-reverse" />
+          <polyline points="31,30 40,30 51,19" class="straight rail switch-reverse" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Double Track Block Reversed 1 -->
+      <div class="cell track" id="doubletrackblock2">
+        <svg viewBox="0 0 100 20" aria-label="Double Track Block 1">
+          <line x1="1" y1="10" x2="99" y2="10" class="straight rail" />
+          <line x1="1" y1="30" x2="99" y2="30" class="straight rail" />
+        </svg>
+      </div>
+
+      <!-- Right-hand flipped over X axis -->
+      <div class="cell turnout" id="switch4">
+        <svg viewBox="0 0 100 60" aria-label="Right-hand switch flipped vertical">
+          <g transform="translate(0,60) scale(1,-1)">
+            <g transform="translate(100,0) scale(-1,1)">
+            <!-- Mainline -->
+            <line x1="1" y1="30" x2="30" y2="30" class="straight rail" />
+            <line x1="55" y1="30" x2="99" y2="30" class="straight rail" />
+
+            <!-- Diverging route (single joined polyline to avoid gaps at the corner) -->
+            <polyline points="52,18 60,10 99,10" class="straight rail" />
+
+            <!-- Switch normal (border behind + visible element) -->
+            <line x1="30" y1="30" x2="55" y2="30" class="straight rail switch-border switch-normal" />
+            <line x1="31" y1="30" x2="54" y2="30" class="straight rail switch-normal" />
+
+            <!-- Switch reversed (border behind + visible element) -->
+            <polyline points="30,30 40,30 52,18" class="straight rail switch-border switch-reverse" />
+            <polyline points="31,30 40,30 51,19" class="straight rail switch-reverse" />
+            </g>
+          </g>
+        </svg>
+      </div>      
+
+      <!-- Left-handswitch -->
+      <div class="cell turnout" id="switch1">
+        <svg viewBox="0 0 100 60">
+          <!-- Mainline -->
+          <line x1="1" y1="30" x2="30" y2="30" class="straight rail" />
+          <line x1="55" y1="30" x2="99" y2="30" class="straight rail" />
+
+          <!-- Diverging route (single joined polyline to avoid gaps at the corner) -->
+          <polyline points="52,18 60,10 99,10" class="straight rail" />
+
+          <!-- Switch normal (border behind + visible element) -->
+          <line x1="30" y1="30" x2="55" y2="30" class="straight rail switch-border switch-normal" />
+          <line x1="31" y1="30" x2="54" y2="30" class="straight rail switch-normal" />
+
+          <!-- Switch reversed (border behind + visible element) -->
+          <polyline points="30,30 40,30 52,18" class="straight rail switch-border switch-reverse" />
+          <polyline points="31,30 40,30 51,19" class="straight rail switch-reverse" />
+        </svg>
+      </div>
+
+      <!-- Double Track Block 1 -->
+      <div class="cell track" id="doubletrackblock1">
+        <svg viewBox="0 0 100 20" aria-label="Double Track Block 1">
+          <line x1="1" y1="-10" x2="99" y2="-10" class="straight rail" />
+          <line x1="1" y1="10" x2="99" y2="10" class="straight rail" />
+        </svg>
+      </div>
+
+      <!-- Right-hand switch -->
+      <div class="cell turnout" id="switch2">
+        <svg viewBox="0 0 100 60" aria-label="Right-hand switch">
+          <g transform="translate(100,0) scale(-1,1)">
+          <!-- Mainline -->
+          <line x1="1" y1="30" x2="30" y2="30" class="straight rail" />
+          <line x1="55" y1="30" x2="99" y2="30" class="straight rail" />
+
+          <!-- Diverging route (single joined polyline to avoid gaps at the corner) -->
+          <polyline points="52,18 60,10 99,10" class="straight rail" />
+
+          <!-- Switch normal (border behind + visible element) -->
+          <line x1="30" y1="30" x2="55" y2="30" class="straight rail switch-border switch-normal" />
+          <line x1="31" y1="30" x2="54" y2="30" class="straight rail switch-normal" />
+
+          <!-- Switch reversed (border behind + visible element) -->
+          <polyline points="30,30 40,30 52,18" class="straight rail switch-border switch-reverse" />
+          <polyline points="31,30 40,30 51,19" class="straight rail switch-reverse" />
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+    </div>
+
+  </div>
+
+  <script>
+    // occupancy toggle removed
+
+    const switch1 = document.getElementById("switch1");
+    let switchThrown = false;
+
+    switch1.onclick = () => {
+      switchThrown = !switchThrown;
+      switch1.classList.toggle("thrown", switchThrown);
+    };
+    const switch2 = document.getElementById("switch2");
+    let switchThrown2 = false;
+    switch2.onclick = () => {
+      switchThrown2 = !switchThrown2;
+      switch2.classList.toggle("thrown", switchThrown2);
+    };
+    const switch3 = document.getElementById("switch3");
+    let switchThrown3 = false;
+    switch3.onclick = () => {
+      switchThrown3 = !switchThrown3;
+      switch3.classList.toggle("thrown", switchThrown3);
+    };
+    const switch4 = document.getElementById("switch4");
+    let switchThrown4 = false;
+    switch4.onclick = () => {
+      switchThrown4 = !switchThrown4;
+      switch4.classList.toggle("thrown", switchThrown4);
+    };
+  </script>
+
+</body>
+
+</html>

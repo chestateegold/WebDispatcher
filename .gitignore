@@ -1,0 +1,126 @@
+# .gitignore for a combined .NET (Visual Studio) + Node project
+# Place at repository root.
+
+# === Visual Studio / .NET ===
+.vs/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.ide
+*.sln.ide
+*.ncrunch*
+*.nupkg
+*.snk
+*.cache
+*.Log
+[Tt]humbs.db
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+x64/
+x86/
+build/
+artifacts/
+publish/
+PublishProfiles/
+
+# NuGet
+packages/
+.project.lock.json
+project.assets.json
+.nuget/
+
+# Rider / JetBrains
+.idea/
+
+# Rider caches
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+
+# ASP.NET / IIS
+wwwroot/node_modules/
+appsettings.*.Local.json
+appsettings.*.Development.json
+
+# Entity Framework migrations (optional)
+migrations/         
+
+# === Node / Frontend ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+pnpm-lock.yaml
+package-lock.json
+.yarn/*
+
+# Build / bundler outputs
+dist/
+dist-ssr/
+build/
+coverage/
+.vitest/
+__screenshots__/
+.cypress/
+.cypress/videos/
+.cypress/screenshots/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.out/
+.svelte-kit/
+.vite/
+*.timestamp-*-*.mjs
+
+# Misc frontend
+*.local
+*.tsbuildinfo
+.eslintcache
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs
+*.log
+
+# Editor directories and files
+*.sw?
+*.ntvs*
+*.njsproj
+*.sln
+
+# Credentials, secrets, and local settings
+.env
+.env.local
+.env.*.local
+secrets.json
+
+# OneDrive / Sync artifacts
+~$*
+*.lnk
+
+# Keep this file idempotent: if you need per-folder ignores, create .gitignore in that folder.
+
+# Ignore Visual Studio / Copilot / IDE generated state that shouldn't be committed
+# File content index used by some IDEs
+/filecontentindex/
+# Visual Studio auxiliary folder (not the same as .vs/)
+vs/
+# Ignore Copilot chat/session folders generated under the solution or VS folders
+**/copilot-chat/
+
+# Ignore Visual Studio Solution user state files
+*.slnx
+/Client/.vscode
