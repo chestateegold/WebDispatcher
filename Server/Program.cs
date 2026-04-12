@@ -34,12 +34,12 @@ if (app.Environment.IsDevelopment())
     app.UseCors("DevCors");
 }
 
-app.UseStaticFiles();
+//app.UseStaticFiles();
 
 // Map your SignalR hub
 app.MapHub<CmriHub>("/cmriHub");
 
 // If no API route matches, serve the SPA index.html (served from webroot/wwwroot)
-app.MapFallbackToFile("index.html");
+//app.MapFallbackToFile("index.html");
 
 app.Run();

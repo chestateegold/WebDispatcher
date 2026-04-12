@@ -12,7 +12,11 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'http://localhost:5000'
+      '/api': 'http://localhost:5129',
+      '/cmriHub': {
+        target: 'http://localhost:5129',
+        ws: true,
+      },
     }
   },
   resolve: {

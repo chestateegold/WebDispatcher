@@ -12,7 +12,7 @@ namespace Server.Services
         public int Port { get; set; } = 3333;
         public int ComPort { get; set; } = 5;
         public int Baud100 { get; set; } = 1152;
-        public byte[] MockInputs { get; set; } = [1, 0, 0];
+        public byte[] MockInputs { get; set; } = [23, 7, 3];
         public byte[]? Ct { get; set; }
     }
 }

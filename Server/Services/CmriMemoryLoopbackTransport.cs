@@ -108,14 +108,37 @@ namespace Server.Services
                 inputs = [.. _currentInputs];
             }
 
-            _inner.EnqueueRead(
-                2,
-                (byte)(_nodeAddress + 65),
-                (byte)'R',
-                inputs[0],
-                inputs[1],
-                inputs[2],
-                3);
+            _inner.EnqueueRead(BuildEscapedResponse((byte)(_nodeAddress + 65), inputs));
+        }
+
+        private static byte[] BuildEscapedResponse(byte ua, byte[] inputs)
+        {
+            var response = new byte[12];
+            var index = 0;
+
+            response[index++] = 2;
+            response[index++] = ua;
+            response[index++] = (byte)'R';
+
+            foreach (var input in inputs)
+            {
+                if (input is 2 or 3 or 16)
+                {
+                    response[index++] = 16;
+                }
+
+                response[index++] = input;
+            }
+
+            response[index++] = 3;
+
+            if (index == response.Length)
+            {
+                return response;
+            }
+
+            Array.Resize(ref response, index);
+            return response;
         }
 
         private static byte[] NormalizeInputs(byte[]? inputs)

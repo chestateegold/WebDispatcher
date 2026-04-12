@@ -14,7 +14,7 @@ namespace Server.Services
         private readonly ILogger<DevicePollingService> _logger;
         private readonly IHubContext<CmriHub> _hubContext;
         private readonly CmriService _cmriService;
-        private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(500); // adjust as needed
+        private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250); // adjust as needed
 
         public DevicePollingService(
             ILogger<DevicePollingService> logger,
@@ -40,6 +40,8 @@ namespace Server.Services
 
                         if (data is not null)
                         {
+                            _logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
+
                             // Send to all connected clients. Use a meaningful signal name and payload shape.
                             await _hubContext.Clients.All.SendAsync("ReceiveMessage", data, cancellationToken: stoppingToken);
                         }

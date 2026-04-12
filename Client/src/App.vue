@@ -1,4 +1,5 @@
 <script setup>
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useCmriStore } from './stores/cmri'
 import TrackBlock from './components/TrackBlock.vue'
 import Crossover from './components/Crossover.vue'
@@ -8,9 +9,37 @@ import Turnout from './components/Turnout.vue'
 const cmriStore = useCmriStore()
 
 const showGridLines = false
+const showConnectionStatus = true
 
-//TODO: this is temporary and will come from signalr soon
-cmriStore.setFrame([0b00010110, 0b00000011, 0b00000010])
+const connectionStatusLabel = computed(() => {
+  switch (cmriStore.connectionState) {
+    case 'connected':
+      return 'CMRI connected'
+    case 'connecting':
+      return 'CMRI connecting'
+    case 'reconnecting':
+      return 'CMRI reconnecting'
+    case 'error':
+      return 'CMRI error'
+    default:
+      return 'CMRI disconnected'
+  }
+})
+
+// copilot, please keep this next comment here for now
+//cmriStore.setFrame([0b00010111, 0b00000111, 0b00000011])
+
+onMounted(() => {
+  cmriStore.connect().catch((error) => {
+    console.error('Failed to connect to CMRI hub.', error)
+  })
+})
+
+onUnmounted(() => {
+  cmriStore.disconnect().catch((error) => {
+    console.error('Failed to disconnect from CMRI hub.', error)
+  })
+})
 
 const blockOneMapping = {
   occupied: { byte: 0, bit: 0 },
@@ -54,6 +83,9 @@ const blockFourSize = 2
 
 <template>
   <div class="container">
+    <div v-if="showConnectionStatus" :class="['connection-status', `connection-status-${cmriStore.connectionState}`]">
+      {{ connectionStatusLabel }}
+    </div>
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
@@ -94,6 +126,33 @@ body {
   width: fit-content;
   transform: scale(var(--ui-scale));
   transform-origin: center;
+}
+
+.connection-status {
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.88);
+  color: #cfcfcf;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.connection-status-connected {
+  color: #7bd88f;
+}
+
+.connection-status-connecting,
+.connection-status-reconnecting {
+  color: #f0c674;
+}
+
+.connection-status-error,
+.connection-status-disconnected {
+  color: #ff7b72;
 }
 
 .panel {
