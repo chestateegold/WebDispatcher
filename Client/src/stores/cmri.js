@@ -4,6 +4,7 @@ import { HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/s
 
 const FRAME_SIZE = 3
 const EMPTY_FRAME = [0, 0, 0]
+const RECONNECT_DELAY_MS = 5000
 
 function normalizeFramePayload(payload) {
   if (Array.isArray(payload)) {
@@ -36,6 +37,8 @@ export const useCmriStore = defineStore('cmri', () => {
   const bytes = ref([...EMPTY_FRAME])
   const connectionState = ref('disconnected')
   let connectionPromise = null
+  let reconnectTimer = null
+  let shouldStayConnected = false
 
   const connection = new HubConnectionBuilder()
     .withUrl('/cmriHub')
@@ -56,9 +59,33 @@ export const useCmriStore = defineStore('cmri', () => {
   })
 
   connection.onclose(() => {
+    clearReconnectTimer()
     connectionState.value = 'disconnected'
     connectionPromise = null
+
+    if (shouldStayConnected) {
+      scheduleReconnect()
+    }
   })
+
+  function clearReconnectTimer() {
+    if (reconnectTimer !== null) {
+      window.clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+  }
+
+  function scheduleReconnect() {
+    if (!shouldStayConnected || reconnectTimer !== null) {
+      return
+    }
+
+    connectionState.value = 'reconnecting'
+    reconnectTimer = window.setTimeout(() => {
+      reconnectTimer = null
+      void startConnection()
+    }, RECONNECT_DELAY_MS)
+  }
 
   function setFrame(nextBytes) {
     const normalized = Array.isArray(nextBytes) ? nextBytes.slice(0, FRAME_SIZE) : []
@@ -70,32 +97,51 @@ export const useCmriStore = defineStore('cmri', () => {
     })
   }
 
-  async function connect() {
+  async function startConnection() {
     if (connection.state === HubConnectionState.Connected) {
       connectionState.value = 'connected'
       return
+    }
+
+    if (connection.state === HubConnectionState.Connecting || connection.state === HubConnectionState.Reconnecting) {
+      return connectionPromise
     }
 
     if (connectionPromise) {
       return connectionPromise
     }
 
-    connectionState.value = 'connecting'
+    clearReconnectTimer()
+    connectionState.value = connectionState.value === 'reconnecting' ? 'reconnecting' : 'connecting'
     connectionPromise = connection.start()
       .then(() => {
         connectionState.value = 'connected'
+        connectionPromise = null
       })
       .catch((error) => {
-        connectionState.value = 'error'
         connectionPromise = null
+
+        if (shouldStayConnected) {
+          scheduleReconnect()
+          return
+        }
+
+        connectionState.value = 'error'
         throw error
       })
 
     return connectionPromise
   }
 
+  async function connect() {
+    shouldStayConnected = true
+    return startConnection()
+  }
+
   async function disconnect() {
+    shouldStayConnected = false
     connectionPromise = null
+    clearReconnectTimer()
 
     if (connection.state === HubConnectionState.Disconnected) {
       connectionState.value = 'disconnected'

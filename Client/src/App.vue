@@ -26,13 +26,8 @@ const connectionStatusLabel = computed(() => {
   }
 })
 
-// copilot, please keep this next comment here for now
-//cmriStore.setFrame([0b00010111, 0b00000111, 0b00000011])
-
 onMounted(() => {
-  cmriStore.connect().catch((error) => {
-    console.error('Failed to connect to CMRI hub.', error)
-  })
+  cmriStore.connect()
 })
 
 onUnmounted(() => {

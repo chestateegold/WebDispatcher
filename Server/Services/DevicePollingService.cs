@@ -40,7 +40,7 @@ namespace Server.Services
 
                         if (data is not null)
                         {
-                            _logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
+                            //_logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
 
                             // Send to all connected clients. Use a meaningful signal name and payload shape.
                             await _hubContext.Clients.All.SendAsync("ReceiveMessage", data, cancellationToken: stoppingToken);
