@@ -9,6 +9,14 @@ const props = defineProps({
     default: 3,
     validator: (value) => Number.isInteger(value) && value >= 1,
   },
+  blockEndLeft: {
+    type: Boolean,
+    default: true,
+  },
+  blockEndRight: {
+    type: Boolean,
+    default: true,
+  },
   mapping: {
     type: Object,
     default: () => ({}),
@@ -41,9 +49,9 @@ const layoutStyle = computed(() => ({
 <template>
   <div :class="[styles.component, styles.layoutItem, 'track', { occupied }]" :style="layoutStyle">
     <svg :class="styles.svgFill" :viewBox="viewBox" aria-label="Track block">
-      <line x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" />
+      <line v-if="blockEndLeft" x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" />
       <line x1="1" y1="30" :x2="innerTrackEnd" y2="30" :class="[styles.straight, styles.rail]" />
-      <line :x1="blockWidth" y1="24" :x2="blockWidth" y2="36" :class="[styles.blockEnd, styles.rail]" />
+      <line v-if="blockEndRight" :x1="blockWidth" y1="24" :x2="blockWidth" y2="36" :class="[styles.blockEnd, styles.rail]" />
     </svg>
   </div>
 </template>

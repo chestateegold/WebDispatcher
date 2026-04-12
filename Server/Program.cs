@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Server.Hubs;
 using Server.Services;
 
@@ -10,7 +11,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // change port if your dev server uses a different port
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -20,9 +21,10 @@ builder.Services.AddCors(options =>
 // Add SignalR
 builder.Services.AddSignalR();
 
-// Register your device client and the background polling service.
-// Replace MockDeviceClient with an adapter that wraps your real hardware library.
-builder.Services.AddSingleton<IDeviceClient, MockDeviceClient>();
+builder.Services.Configure<CmriOptions>(builder.Configuration.GetSection("Cmri"));
+
+// Register the CMRI-backed service and the background polling service.
+builder.Services.AddSingleton<CmriService>();
 builder.Services.AddHostedService<DevicePollingService>();
 
 var app = builder.Build();

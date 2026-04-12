@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" role="img" aria-label="Occupied turnout in normal position">
-	<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+	<g fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 10)">
 		<line x1="0" y1="24" x2="0" y2="36" stroke="#d33" stroke-width="2"/>
 		<line x1="0" y1="30" x2="34" y2="30" stroke="#d33" stroke-width="8"/>
 

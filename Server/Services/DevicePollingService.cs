@@ -13,17 +13,17 @@ namespace Server.Services
     {
         private readonly ILogger<DevicePollingService> _logger;
         private readonly IHubContext<CmriHub> _hubContext;
-        private readonly IDeviceClient _deviceClient;
+        private readonly CmriService _cmriService;
         private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(500); // adjust as needed
 
         public DevicePollingService(
             ILogger<DevicePollingService> logger,
             IHubContext<CmriHub> hubContext,
-            IDeviceClient deviceClient)
+            CmriService cmriService)
         {
             _logger = logger;
             _hubContext = hubContext;
-            _deviceClient = deviceClient;
+            _cmriService = cmriService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,7 +36,7 @@ namespace Server.Services
                 {
                     try
                     {
-                        var data = await _deviceClient.ReadAsync(stoppingToken);
+                        var data = await _cmriService.ReadAsync(stoppingToken);
 
                         if (data is not null)
                         {

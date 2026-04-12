@@ -10,7 +10,7 @@ const cmriStore = useCmriStore()
 const showGridLines = false
 
 //TODO: this is temporary and will come from signalr soon
-cmriStore.setFrame([0b00010110, 0b0000000, 0b00000000])
+cmriStore.setFrame([0b00010110, 0b00000011, 0b00000010])
 
 const blockOneMapping = {
   occupied: { byte: 0, bit: 0 },
@@ -55,14 +55,14 @@ const blockFourSize = 2
 <template>
   <div class="container">
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
-      <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" />
+      <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
       <Turnout :size="turnoutOneSize" direction="right" orientation="down" :mapping="turnoutOneMapping" />
       <DoubleTrackBlock :size="doubleTrackOneSize" orientation="down" :mapping="doubleTrackOneMapping" />
       <Turnout :size="turnoutTwoSize" direction="left" orientation="down" :mapping="turnoutTwoMapping" />
-      <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" />
+      <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
     </div>
   </div>
 </template>
