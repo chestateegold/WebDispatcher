@@ -55,7 +55,7 @@ const blockThreeMapping = {
 const blockThreeSize = 3
 //switch 1
 const turnoutOneMapping = {
-  occupied: [{ byte: 1, bit: 0 },{ byte: 1, bit: 1 }],
+  occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
   switchPosition: { byte: 1, bit: 3 },
 }
 const turnoutOneSize = 3
@@ -85,10 +85,12 @@ const blockFourSize = 2
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
+
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
-      <Turnout :size="turnoutOneSize" direction="right" orientation="down" :mapping="turnoutOneMapping" />
-      <DoubleTrackBlock :size="doubleTrackOneSize" orientation="down" :mapping="doubleTrackOneMapping" />
-      <Turnout :size="turnoutTwoSize" direction="left" orientation="down" :mapping="turnoutTwoMapping" />
+      <Turnout :size="turnoutOneSize" direction="left" orientation="up" :mapping="turnoutOneMapping" />
+      <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
+      
+      <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />    
       <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
     </div>
   </div>
@@ -98,7 +100,7 @@ const blockFourSize = 2
 :root {
   --ui-scale: 1.65;
   --grid-unit: 20px;
-  --panel-row-height: 60px;
+  --panel-row-height: 100px;
 }
 
 /* Page */
@@ -176,10 +178,9 @@ body {
   background-size: var(--grid-unit) var(--panel-row-height);
   /* position each background so one appears at the 0px edge and the other at cell-1px */
   background-position: 0 0,
-                       calc(var(--grid-unit) - 1px) 0,
-                       0 0,
-                       0 calc(var(--panel-row-height) - 1px);
+    calc(var(--grid-unit) - 1px) 0,
+    0 0,
+    0 calc(var(--panel-row-height) - 1px);
   background-repeat: repeat;
 }
-
 </style>

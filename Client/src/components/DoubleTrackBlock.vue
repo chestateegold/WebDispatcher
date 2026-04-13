@@ -57,14 +57,14 @@ const blockWidth = computed(() => props.size * 20)
 
 const innerTrackEnd = computed(() => Math.max(1, blockWidth.value - 1))
 
-const viewBox = computed(() => `0 0 ${blockWidth.value} 60`)
+const viewBox = computed(() => `0 -20 ${blockWidth.value} 80`)
 
 const layoutStyle = computed(() => ({
   gridColumn: `span ${props.size}`,
 }))
 
 const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,30)' : 'translate(0,10)',
+  props.orientation === 'down' ? 'translate(0,20)' : 'translate(0,0)',
 )
 </script>
 
