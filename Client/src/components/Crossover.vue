@@ -35,7 +35,7 @@ const mainOccupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const crossingOccupied = computed(() => {
@@ -45,7 +45,7 @@ const crossingOccupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const diamondOccupied = computed(() => mainOccupied.value || crossingOccupied.value)

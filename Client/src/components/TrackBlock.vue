@@ -32,7 +32,7 @@ const occupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const blockWidth = computed(() => props.size * 20)

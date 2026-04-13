@@ -33,6 +33,18 @@ function normalizeFramePayload(payload) {
   return []
 }
 
+function normalizeBitSources(source) {
+  if (Array.isArray(source)) {
+    return source
+  }
+
+  if (source && typeof source === 'object') {
+    return [source]
+  }
+
+  return []
+}
+
 export const useCmriStore = defineStore('cmri', () => {
   const bytes = ref([...EMPTY_FRAME])
   const connectionState = ref('disconnected')
@@ -164,6 +176,10 @@ export const useCmriStore = defineStore('cmri', () => {
     return (bytes.value[byteIndex] & (1 << bitIndex)) !== 0
   }
 
+  function getAnyBit(source) {
+    return normalizeBitSources(source).some(({ byte, bit }) => getBit(byte, bit))
+  }
+
   return {
     bytes,
     connectionState,
@@ -171,6 +187,7 @@ export const useCmriStore = defineStore('cmri', () => {
     disconnect,
     setFrame,
     getBit,
+    getAnyBit,
   }
 })
 

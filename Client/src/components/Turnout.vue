@@ -54,7 +54,7 @@ const occupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const switchReversed = computed(() => {
@@ -64,7 +64,7 @@ const switchReversed = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return !cmriStore.getBit(source.byte, source.bit)
 })
 
 const switchNormal = computed(() => !switchReversed.value)

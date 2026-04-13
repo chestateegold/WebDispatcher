@@ -57,17 +57,17 @@ namespace Server.Services
         {
             if (string.Equals(options.Transport, "Tcp", StringComparison.OrdinalIgnoreCase))
             {
-                return new TcpTransport(options.Host, options.Port);
+                return new TcpTransport(options.Tcp.Host, options.Tcp.Port);
             }
 
             if (string.Equals(options.Transport, "Serial", StringComparison.OrdinalIgnoreCase))
             {
-                return new SerialTransport(options.ComPort, options.Baud100, options.MaxBuf);
+                return new SerialTransport(options.Serial.ComPort, options.Serial.Baud100, options.MaxBuf);
             }
 
             if (string.Equals(options.Transport, "Memory", StringComparison.OrdinalIgnoreCase))
             {
-                return new CmriMemoryLoopbackTransport(options.NodeAddress, options.MockInputs);
+                return new CmriMemoryLoopbackTransport(options.NodeAddress, options.Memory.MockInputs);
             }
 
             throw new InvalidOperationException($"Unsupported CMRI transport '{options.Transport}'.");

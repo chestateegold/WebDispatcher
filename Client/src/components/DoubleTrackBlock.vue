@@ -29,7 +29,7 @@ const trackOneOccupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const trackTwoOccupied = computed(() => {
@@ -39,7 +39,7 @@ const trackTwoOccupied = computed(() => {
     return false
   }
 
-  return cmriStore.getBit(source.byte, source.bit)
+  return cmriStore.getAnyBit(source)
 })
 
 const activeColor = '#d33'

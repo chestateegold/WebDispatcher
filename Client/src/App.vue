@@ -37,41 +37,41 @@ onUnmounted(() => {
 })
 
 const blockOneMapping = {
-  occupied: { byte: 0, bit: 0 },
+  occupied: { byte: 2, bit: 3 },
 }
 const blockOneSize = 2
 const blockTwoMapping = {
-  occupied: { byte: 0, bit: 1 },
+  occupied: { byte: 2, bit: 2 },
 }
 const blockTwoSize = 3
 const crossover1Mapping = {
-  mainOccupied: { byte: 0, bit: 2 },
-  crossingOccupied: { byte: 0, bit: 3 },
+  mainOccupied: { byte: 2, bit: 0 },
+  crossingOccupied: { byte: 2, bit: 1 },
 }
 const crossoverSize = 3
 const blockThreeMapping = {
-  occupied: { byte: 0, bit: 4 },
+  occupied: { byte: 1, bit: 2 },
 }
 const blockThreeSize = 3
 //switch 1
 const turnoutOneMapping = {
-  occupied: { byte: 1, bit: 0 },
-  switchPosition: { byte: 1, bit: 1 },
+  occupied: [{ byte: 1, bit: 0 },{ byte: 1, bit: 1 }],
+  switchPosition: { byte: 1, bit: 3 },
 }
 const turnoutOneSize = 3
 const doubleTrackOneMapping = {
-  trackOneOccupied: { byte: 2, bit: 0 },
-  trackTwoOccupied: { byte: 2, bit: 1 },
+  trackOneOccupied: { byte: 0, bit: 1 },
+  trackTwoOccupied: { byte: 0, bit: 2 },
 }
 const doubleTrackOneSize = 3
 //switch 2
 const turnoutTwoMapping = {
-  occupied: { byte: 1, bit: 2 },
-  switchPosition: { byte: 1, bit: 3 },
+  occupied: { byte: 0, bit: 0 },
+  switchPosition: { byte: 0, bit: 3 },
 }
 const turnoutTwoSize = 3
 const blockFourMapping = {
-  occupied: { byte: 0, bit: 0 },
+  occupied: { byte: 2, bit: 3 },
 }
 const blockFourSize = 2
 </script>
