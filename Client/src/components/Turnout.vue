@@ -1,7 +1,32 @@
 <script setup>
 import { computed } from 'vue'
 import { useCmriStore } from '../stores/cmri'
+import Signal from './Signal.vue'
 import styles from './cell.module.css'
+
+const defaultSignals = [
+  {
+    id: 'single-track',
+    x: 0,
+    y: 15,
+    label: 'Single track signal',
+    facing: 'right',
+  },
+  {
+    id: 'track-one',
+    x: 60,
+    y: 45,
+    label: 'Track one signal',
+    facing: 'left',
+  },
+  {
+    id: 'track-two',
+    x: 60,
+    y: -5,
+    label: 'Track two signal',
+    facing: 'left',
+  },
+]
 
 const props = defineProps({
   size: {
@@ -23,7 +48,17 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  signals: {
+    type: Array,
+    default: () => [],
+  },
+  activeSignalId: {
+    type: String,
+    default: null,
+  },
 })
+
+const emit = defineEmits(['signal-clicked'])
 
 const cmriStore = useCmriStore()
 
@@ -44,7 +79,7 @@ const directionTransform = computed(() =>
 )
 
 const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,60) scale(1,-1)' : undefined,
+  props.orientation === 'down' ? 'translate(0,50) scale(1,-1)' : 'translate(0,-10)',
 )
 
 const occupied = computed(() => {
@@ -69,6 +104,10 @@ const switchReversed = computed(() => {
 
 const switchNormal = computed(() => !switchReversed.value)
 
+const turnoutSignals = computed(() =>
+  props.signals.length > 0 ? props.signals : defaultSignals,
+)
+
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
 
 const activeColor = '#d33'
@@ -89,13 +128,31 @@ const trackTwoStyle = computed(() => ({
 const layoutStyle = computed(() => ({
   gridColumn: `span ${props.size}`,
 }))
+
+function onSignalClicked(signalId) {
+  emit('signal-clicked', signalId)
+}
 </script>
 
 <template>
   <div :class="[styles.component, styles.layoutItem, 'turnout', { thrown: switchReversed }]" :style="layoutStyle">
-    <svg :class="styles.svgFill" viewBox="0 0 60 60" :aria-label="ariaLabel">
+    <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
       <g :transform="orientationTransform">
         <g :transform="directionTransform">
+          <Signal
+            v-for="signal in turnoutSignals"
+            :id="signal.id"
+            :key="signal.id"
+            :x="signal.x"
+            :y="signal.y"
+            :label="signal.label"
+            :aspect="activeSignalId === signal.id ? 'green' : 'red'"
+            :facing="signal.facing ?? 'right'"
+            :hit-width="signal.hitWidth ?? 16"
+            :hit-height="signal.hitHeight ?? 16"
+            @activate="onSignalClicked"
+          />
+
           <!-- single track -->
           <line x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" :style="singleTrackStyle" /> 
           <line x1="1" y1="30" x2="10" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />

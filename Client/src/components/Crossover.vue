@@ -75,8 +75,8 @@ const layoutStyle = computed(() => ({
 
 <template>
   <div :class="[styles.component, styles.layoutItem, 'track']" :style="layoutStyle">
-    <svg :class="styles.svgFill" viewBox="0 0 60 60" :aria-label="ariaLabel">
-      <g transform="translate(0,20)">
+    <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
+      <g transform="translate(0,10)">
         <g :transform="geometryTransform">
         <!-- Main Track -->
         <line x1="0" y1="4" x2="0" y2="16" :class="[styles.blockEnd, styles.rail]" :style="mainTrackStyle" />
