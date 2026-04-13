@@ -8,7 +8,7 @@ const defaultSignals = [
   {
     id: 'single-track',
     x: 0,
-    y: 15,
+    y: 45,
     label: 'Single track signal',
     facing: 'right',
   },
@@ -155,23 +155,23 @@ function onSignalClicked(signalId) {
 
           <!-- single track -->
           <line x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" :style="singleTrackStyle" /> 
-          <line x1="1" y1="30" x2="10" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />
+          <line x1="1" y1="30" x2="17" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />
 
           <!-- track 1 -->
           <line x1="60" y1="24" x2="60" y2="36" :class="[styles.blockEnd, styles.rail]" :style="trackOneStyle" />
-          <line x1="35" y1="30" x2="59" y2="30" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
+          <line x1="42" y1="30" x2="59" y2="30" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
 
           <!-- track 2 -->
-          <polyline points="32,18 40,10 59,10" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" /> 
+          <polyline points="39,18 47,10 59,10" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" /> 
           <line x1="60" y1="4" x2="60" y2="16" :class="[styles.blockEnd, styles.rail]" :style="trackTwoStyle" />
 
           <!-- turnout normal -->
-          <line x1="10" y1="30" x2="35" y2="30" :class="[styles.straight, styles.rail, 'switch-border', 'switch-normal']" />
-          <line x1="11" y1="30" x2="34" y2="30" :class="[styles.straight, styles.rail, 'switch-normal']" :style="trackOneStyle" />
+          <line x1="17" y1="30" x2="42" y2="30" :class="[styles.straight, styles.rail, 'switch-border', 'switch-normal']" />
+          <line x1="18" y1="30" x2="41" y2="30" :class="[styles.straight, styles.rail, 'switch-normal']" :style="trackOneStyle" />
 
           <!-- turnout reverse -->
-          <polyline points="10,30 20,30 32,18" :class="[styles.straight, styles.rail, 'switch-border', 'switch-reverse']" />
-          <polyline points="11,30 20,30 31,19" :class="[styles.straight, styles.rail, 'switch-reverse']" :style="trackTwoStyle" />
+          <polyline points="17,30 27,30 39,18" :class="[styles.straight, styles.rail, 'switch-border', 'switch-reverse']" />
+          <polyline points="18,30 27,30 38,19" :class="[styles.straight, styles.rail, 'switch-reverse']" :style="trackTwoStyle" />
         </g>
       </g>
     </svg>

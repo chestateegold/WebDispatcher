@@ -8,7 +8,7 @@ import Turnout from './components/Turnout.vue'
 
 const cmriStore = useCmriStore()
 
-const showGridLines = false
+const showGridLines = true
 const showConnectionStatus = true
 
 const connectionStatusLabel = computed(() => {
