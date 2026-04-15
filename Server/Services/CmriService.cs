@@ -62,7 +62,9 @@ namespace Server.Services
 
             if (string.Equals(options.Transport, "Serial", StringComparison.OrdinalIgnoreCase))
             {
-                return new SerialTransport(options.Serial.ComPort, options.Serial.Baud100, options.MaxBuf);
+                return !string.IsNullOrWhiteSpace(options.Serial.PortName)
+                    ? new SerialTransport(options.Serial.PortName, options.Serial.Baud100, options.MaxBuf)
+                    : new SerialTransport(options.Serial.ComPort, options.Serial.Baud100, options.MaxBuf);
             }
 
             if (string.Equals(options.Transport, "Memory", StringComparison.OrdinalIgnoreCase))

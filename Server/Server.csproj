@@ -8,15 +8,33 @@
 
   <Target Name="BuildClientApp" BeforeTargets="Build;Publish">
     <Message Importance="high" Text="Building ClientApp (ClientApp)..." />
-    <!-- Adjust the path if your client folder name is different -->
     <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm install" />
     <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm run build" />
-    <ItemGroup>
-      <!-- Include all files from ClientApp/dist into the publish/output -->
-      <DistFiles Include="$(ProjectDir)..\Client\dist\**\*" />
-      <Content Include="%(DistFiles.Identity)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
   </Target>
+
+  <Target Name="CopyClientAppToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <DistFiles Include="$(ProjectDir)..\Client\dist\**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(OutDir)wwwroot" />
+    <Copy SourceFiles="@(DistFiles)"
+          DestinationFiles="@(DistFiles->'$(OutDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyClientAppToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <DistFiles Include="$(ProjectDir)..\Client\dist\**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(PublishDir)wwwroot" />
+    <Copy SourceFiles="@(DistFiles)"
+          DestinationFiles="@(DistFiles->'$(PublishDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="10.0.5" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="CmriSubroutines">

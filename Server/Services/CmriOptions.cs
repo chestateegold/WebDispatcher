@@ -27,6 +27,7 @@ namespace Server.Services
 
     public class SerialTransportOptions
     {
+        public string? PortName { get; set; }
         public int ComPort { get; set; } = 5;
         public int Baud100 { get; set; } = 1152;
     }

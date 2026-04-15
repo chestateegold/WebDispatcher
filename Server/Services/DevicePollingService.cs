@@ -15,7 +15,7 @@ namespace Server.Services
         private readonly IHubContext<CmriHub> _hubContext;
         private readonly CmriService _cmriService;
         private readonly CmriState _cmriState;
-        private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(250); // adjust as needed
+        private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(50); // adjust as needed
 
         public DevicePollingService(
             ILogger<DevicePollingService> logger,
