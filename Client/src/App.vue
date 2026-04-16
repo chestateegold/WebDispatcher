@@ -8,7 +8,7 @@ import Turnout from './components/Turnout.vue'
 
 const cmriStore = useCmriStore()
 
-const showGridLines = true
+const showGridLines = false
 const showConnectionStatus = true
 
 const connectionStatusLabel = computed(() => {
@@ -52,7 +52,7 @@ const crossoverSize = 3
 const blockThreeMapping = {
   occupied: { byte: 1, bit: 2 },
 }
-const blockThreeSize = 3
+const blockThreeSize = 2
 //switch 1
 const turnoutOneMapping = {
   occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
@@ -82,15 +82,16 @@ const blockFourSize = 2
       {{ connectionStatusLabel }}
     </div>
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
+      <!--
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
-
+    -->
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
       <Turnout :size="turnoutOneSize" direction="left" orientation="up" :mapping="turnoutOneMapping" />
       <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
-      
-      <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />    
+
+      <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />
       <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
     </div>
   </div>
@@ -155,7 +156,7 @@ body {
 .panel {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(22, var(--grid-unit));
+  grid-template-columns: repeat(21, var(--grid-unit));
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
   margin-bottom: 12px;
