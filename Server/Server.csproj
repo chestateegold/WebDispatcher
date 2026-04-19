@@ -4,9 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <SkipClientBuild>true</SkipClientBuild>
   </PropertyGroup>
 
-  <Target Name="BuildClientApp" BeforeTargets="Build;Publish">
+  <Target Name="BuildClientApp" BeforeTargets="Build;Publish" Condition="'$(SkipClientBuild)' != 'true'">
     <Message Importance="high" Text="Building ClientApp (ClientApp)..." />
     <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm install" />
     <Exec WorkingDirectory="$(ProjectDir)..\Client" Command="npm run build" />
