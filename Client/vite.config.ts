@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import Checker from 'vite-plugin-checker'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,6 +21,7 @@ export default defineConfig({
       imports: ['vue', 'pinia'],
       dirs: ['src/stores', 'src/components/turnout'],
     }),
+    Checker({ vueTsc: true }),
   ],
   server: {
     proxy: {
@@ -28,7 +30,7 @@ export default defineConfig({
         target: 'http://localhost:5129',
         ws: true,
       },
-    }
+    },
   },
   resolve: {
     alias: {

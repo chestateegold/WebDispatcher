@@ -1,23 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import styles from '../cell.module.css'
 
-defineProps({
-  thrown: {
-    type: Boolean,
-    default: false,
-  },
-  singleTrackStyle: {
-    type: Object,
-    default: () => ({}),
-  },
-  trackOneStyle: {
-    type: Object,
-    default: () => ({}),
-  },
-  trackTwoStyle: {
-    type: Object,
-    default: () => ({}),
-  },
+import type { RailStyle } from './types'
+
+interface Props {
+  thrown?: boolean
+  singleTrackStyle?: RailStyle
+  trackOneStyle?: RailStyle
+  trackTwoStyle?: RailStyle
+}
+
+withDefaults(defineProps<Props>(), {
+  thrown: false,
+  singleTrackStyle: () => ({}),
+  trackOneStyle: () => ({}),
+  trackTwoStyle: () => ({}),
 })
 </script>
 

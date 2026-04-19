@@ -1,30 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import styles from './cell.module.css'
 
-const props = defineProps({
-  size: {
-    type: Number,
-    default: 3,
-    validator: (value) => Number.isInteger(value) && value >= 1,
-  },
-  blockEndLeft: {
-    type: Boolean,
-    default: true,
-  },
-  blockEndRight: {
-    type: Boolean,
-    default: true,
-  },
-  mapping: {
-    type: Object,
-    default: () => ({}),
-  },
+import { useCmriStore } from '@/stores/cmri'
+import type { TrackBlockMapping } from '@/types/cmri'
+
+interface Props {
+  size?: number
+  blockEndLeft?: boolean
+  blockEndRight?: boolean
+  mapping?: TrackBlockMapping
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: 3,
+  blockEndLeft: true,
+  blockEndRight: true,
+  mapping: () => ({}),
 })
 
 const cmriStore = useCmriStore()
 
-const occupied = computed(() => {
-  const source = props.mapping?.occupied
+const isOccupied = computed(() => {
+  const source = props.mapping.occupied
 
   if (!source) {
     return false
@@ -45,7 +42,7 @@ const layoutStyle = computed(() => ({
 </script>
 
 <template>
-  <div :class="[styles.component, styles.layoutItem, 'track', { occupied }]" :style="layoutStyle">
+  <div :class="[styles.component, styles.layoutItem, 'track', { occupied: isOccupied }]" :style="layoutStyle">
     <svg :class="styles.svgFill" :viewBox="viewBox" aria-label="Track block">
       <line v-if="blockEndLeft" x1="0" y1="14" x2="0" y2="26" :class="[styles.blockEnd, styles.rail]" />
       <line x1="1" y1="20" :x2="innerTrackEnd" y2="20" :class="[styles.straight, styles.rail]" />

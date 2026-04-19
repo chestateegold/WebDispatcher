@@ -1,5 +1,7 @@
+import type { SignalLayout, TurnoutDirection } from './types'
+
 // Shared turnout layout and visual constants live here to keep the component focused on behavior.
-export const signalLayouts = {
+export const signalLayouts: Record<TurnoutDirection, SignalLayout[]> = {
   right: [
     { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'left' },
     { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'right' },

@@ -1,3 +1,5 @@
+import type { SignalAspect, SignalAspectRequest } from './types'
+
 // Small turnout-specific helpers stay here so the component reads top-to-bottom.
 export function getSignalAspect({
   signalId,
@@ -5,7 +7,7 @@ export function getSignalAspect({
   isClearLeftActive,
   isClearRightActive,
   activeSignalId,
-}) {
+}: SignalAspectRequest): SignalAspect {
   if (hasClearRouteSources) {
     if (signalId === 'single-track') {
       return isClearLeftActive || isClearRightActive ? 'green' : 'red'

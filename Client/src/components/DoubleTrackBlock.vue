@@ -1,27 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import styles from './cell.module.css'
 
-const props = defineProps({
-  size: {
-    type: Number,
-    default: 5,
-    validator: (value) => Number.isInteger(value) && value >= 1,
-  },
-  mapping: {
-    type: Object,
-    default: () => ({}),
-  },
-  orientation: {
-    type: String,
-    default: 'up',
-    validator: (v) => ['up', 'down'].includes(v),
-  },
+import { useCmriStore } from '@/stores/cmri'
+import type { DoubleTrackBlockMapping } from '@/types/cmri'
+
+type TrackOrientation = 'up' | 'down'
+
+interface Props {
+  size?: number
+  mapping?: DoubleTrackBlockMapping
+  orientation?: TrackOrientation
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: 5,
+  mapping: () => ({}),
+  orientation: 'up',
 })
 
 const cmriStore = useCmriStore()
 
 const trackOneOccupied = computed(() => {
-  const source = props.mapping?.trackOneOccupied
+  const source = props.mapping.trackOneOccupied
 
   if (!source) {
     return false
@@ -31,7 +31,7 @@ const trackOneOccupied = computed(() => {
 })
 
 const trackTwoOccupied = computed(() => {
-  const source = props.mapping?.trackTwoOccupied
+  const source = props.mapping.trackTwoOccupied
 
   if (!source) {
     return false

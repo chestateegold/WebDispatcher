@@ -1,46 +1,29 @@
-<script setup>
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  x: {
-    type: Number,
-    required: true,
-  },
-  y: {
-    type: Number,
-    required: true,
-  },
-  label: {
-    type: String,
-    default: 'Signal',
-  },
-  aspect: {
-    type: String,
-    default: 'red',
-    validator: (value) => ['red', 'green'].includes(value),
-  },
-  facing: {
-    type: String,
-    default: 'right',
-    validator: (value) => ['left', 'right', 'up', 'down'].includes(value),
-  },
-  interactive: {
-    type: Boolean,
-    default: true,
-  },
-  hitWidth: {
-    type: Number,
-    default: 16,
-  },
-  hitHeight: {
-    type: Number,
-    default: 16,
-  },
+<script setup lang="ts">
+type SignalAspect = 'red' | 'green'
+type SignalFacing = 'left' | 'right' | 'up' | 'down'
+
+interface Props {
+  id: string
+  x: number
+  y: number
+  label?: string
+  aspect?: SignalAspect
+  facing?: SignalFacing
+  interactive?: boolean
+  hitWidth?: number
+  hitHeight?: number
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  label: 'Signal',
+  aspect: 'red',
+  facing: 'right',
+  interactive: true,
+  hitWidth: 16,
+  hitHeight: 16,
 })
 
-const emit = defineEmits(['activate'])
+const emit = defineEmits<{ activate: [id: string] }>()
 
 function activate() {
   if (!props.interactive) {
@@ -50,7 +33,7 @@ function activate() {
   emit('activate', props.id)
 }
 
-function onKeydown(event) {
+function onKeydown(event: KeyboardEvent) {
   if (event.key !== 'Enter' && event.key !== ' ') {
     return
   }
@@ -61,7 +44,7 @@ function onKeydown(event) {
 
 const lampClass = computed(() => `signal-lamp-${props.aspect}`)
 
-const facingTransform = computed(() => {
+const facingTransform = computed<string | undefined>(() => {
   switch (props.facing) {
     case 'left':
       return 'scale(-1,1)'

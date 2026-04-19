@@ -1,20 +1,22 @@
-<script setup>
+<script setup lang="ts">
 /* Turnout wrapper moved into a folder. */
 import styles from '../cell.module.css'
 import { clearColor, idleColor, occupiedColor, signalLayouts } from './constants'
 import { getSignalAspect } from './helpers'
+import type { RailColorArgs, RailStyle, SignalFacing, TurnoutProps, TurnoutSignalId } from './types'
+import { useTurnoutMapping } from './useTurnoutMapping'
 
-const props = defineProps({
-  size: { type: Number, default: 3, validator: (v) => Number.isInteger(v) && v >= 1 },
-  direction: { type: String, default: 'left', validator: (v) => ['left', 'right'].includes(v) },
-  orientation: { type: String, default: 'up', validator: (v) => ['up', 'down'].includes(v) },
-  mapping: { type: Object, default: () => ({}) },
-  clearLeft: { type: [Object, Array], default: null },
-  clearRight: { type: [Object, Array], default: null },
-  activeSignalId: { type: String, default: null },
+const props = withDefaults(defineProps<TurnoutProps>(), {
+  size: 3,
+  direction: 'left',
+  orientation: 'up',
+  mapping: () => ({}),
+  clearLeft: null,
+  clearRight: null,
+  activeSignalId: null,
 })
 
-const emit = defineEmits(['signal-clicked'])
+const emit = defineEmits<{ 'signal-clicked': [signalId: TurnoutSignalId] }>()
 
 // Store / mapping
 const {
@@ -56,7 +58,7 @@ const signalPositions = computed(() => {
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
 
 // Color logic
-function railColor({ occupied, switchState, clearActive }) {
+function railColor({ occupied, switchState, clearActive }: RailColorArgs): string {
   if (occupied && switchState) {
     return occupiedColor
   }
@@ -68,7 +70,7 @@ function railColor({ occupied, switchState, clearActive }) {
   return idleColor
 }
 
-const singleTrackStyle = computed(() => {
+const singleTrackStyle = computed<RailStyle>(() => {
   return {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
@@ -78,7 +80,7 @@ const singleTrackStyle = computed(() => {
   }
 })
 
-const trackOneStyle = computed(() => {
+const trackOneStyle = computed<RailStyle>(() => {
   return {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
@@ -88,7 +90,7 @@ const trackOneStyle = computed(() => {
   }
 })
 
-const trackTwoStyle = computed(() => {
+const trackTwoStyle = computed<RailStyle>(() => {
   return {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
@@ -101,7 +103,7 @@ const trackTwoStyle = computed(() => {
 const layoutStyle = computed(() => ({ gridColumn: `span ${props.size}` }))
 
 // Helpers
-function getRenderedFacing(facing) {
+function getRenderedFacing(facing: SignalFacing): SignalFacing {
   let result = facing
 
   // With the whole turnout rotating around its center for `down`,
@@ -114,7 +116,25 @@ function getRenderedFacing(facing) {
   return result
 }
 
-function onSignalClicked(signalId) {
+function getSignalAspectForId(signalId: TurnoutSignalId) {
+  return getSignalAspect({
+    signalId,
+    hasClearRouteSources: hasClearRouteSources.value,
+    isClearLeftActive: isClearLeftActive.value,
+    isClearRightActive: isClearRightActive.value,
+    activeSignalId: props.activeSignalId,
+  })
+}
+
+function isTurnoutSignalId(signalId: string): signalId is TurnoutSignalId {
+  return signalId === 'single-track' || signalId === 'track-one' || signalId === 'track-two'
+}
+
+function onSignalClicked(signalId: string) {
+  if (!isTurnoutSignalId(signalId)) {
+    return
+  }
+
   emit('signal-clicked', signalId)
 }
 </script>
@@ -125,7 +145,7 @@ function onSignalClicked(signalId) {
     <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
       <g :transform="viewTransform">
         <Signal v-for="signal in signalPositions" :id="signal.id" :key="signal.id" :x="signal.x" :y="signal.y"
-          :label="signal.label" :aspect="getSignalAspect({ signalId: signal.id, hasClearRouteSources: hasClearRouteSources.value, isClearLeftActive: isClearLeftActive.value, isClearRightActive: isClearRightActive.value, activeSignalId: props.activeSignalId })"
+          :label="signal.label" :aspect="getSignalAspectForId(signal.id)"
           :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
           @activate="onSignalClicked" />
 

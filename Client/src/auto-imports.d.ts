@@ -8,7 +8,7 @@ export {}
 declare global {
   const EffectScope: typeof import('vue').EffectScope
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
-  const clearColor: typeof import('./components/turnout/constants.js').clearColor
+  const clearColor: typeof import('./components/turnout/constants').clearColor
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const createPinia: typeof import('pinia').createPinia
@@ -21,9 +21,9 @@ declare global {
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
-  const getSignalAspect: typeof import('./components/turnout/helpers.js').getSignalAspect
+  const getSignalAspect: typeof import('./components/turnout/helpers').getSignalAspect
   const h: typeof import('vue').h
-  const idleColor: typeof import('./components/turnout/constants.js').idleColor
+  const idleColor: typeof import('./components/turnout/constants').idleColor
   const inject: typeof import('vue').inject
   const isProxy: typeof import('vue').isProxy
   const isReactive: typeof import('vue').isReactive
@@ -37,7 +37,7 @@ declare global {
   const mapWritableState: typeof import('pinia').mapWritableState
   const markRaw: typeof import('vue').markRaw
   const nextTick: typeof import('vue').nextTick
-  const occupiedColor: typeof import('./components/turnout/constants.js').occupiedColor
+  const occupiedColor: typeof import('./components/turnout/constants').occupiedColor
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
   const onBeforeUnmount: typeof import('vue').onBeforeUnmount
@@ -62,7 +62,7 @@ declare global {
   const shallowReactive: typeof import('vue').shallowReactive
   const shallowReadonly: typeof import('vue').shallowReadonly
   const shallowRef: typeof import('vue').shallowRef
-  const signalLayouts: typeof import('./components/turnout/constants.js').signalLayouts
+  const signalLayouts: typeof import('./components/turnout/constants').signalLayouts
   const storeToRefs: typeof import('pinia').storeToRefs
   const toRaw: typeof import('vue').toRaw
   const toRef: typeof import('vue').toRef
@@ -71,14 +71,14 @@ declare global {
   const triggerRef: typeof import('vue').triggerRef
   const unref: typeof import('vue').unref
   const useAttrs: typeof import('vue').useAttrs
-  const useCmriStore: typeof import('./stores/cmri.js').useCmriStore
+  const useCmriStore: typeof import('./stores/cmri').useCmriStore
   const useCssModule: typeof import('vue').useCssModule
   const useCssVars: typeof import('vue').useCssVars
   const useId: typeof import('vue').useId
   const useModel: typeof import('vue').useModel
   const useSlots: typeof import('vue').useSlots
   const useTemplateRef: typeof import('vue').useTemplateRef
-  const useTurnoutMapping: typeof import('./components/turnout/useTurnoutMapping.js').useTurnoutMapping
+  const useTurnoutMapping: typeof import('./components/turnout/useTurnoutMapping').useTurnoutMapping
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
   const watchPostEffect: typeof import('vue').watchPostEffect
@@ -89,4 +89,7 @@ declare global {
   // @ts-ignore
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { TurnoutDirection, TurnoutOrientation, SignalFacing, SignalAspect, TurnoutSignalId, RailStyle, SignalLayout, TurnoutProps, TurnoutMappingInput, RailColorArgs, SignalAspectRequest } from './components/turnout/types'
+  import('./components/turnout/types')
 }
