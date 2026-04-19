@@ -27,6 +27,8 @@ export interface CrossoverMapping {
 export interface TurnoutMapping {
   occupied?: BitSourceLike
   switchPosition?: BitSource
+  clearLeft?: BitSourceLike
+  clearRight?: BitSourceLike
 }
 
 export interface FrameEnvelope {

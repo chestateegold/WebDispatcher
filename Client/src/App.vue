@@ -53,6 +53,16 @@ const blockThreeSize = 2
 const turnoutOneMapping: TurnoutMapping = {
   occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
   switchPosition: { byte: 1, bit: 3 },
+  clearLeft: {
+    byte: 0,
+    bit: 0,
+    array: 'derivedIndications',
+  },
+  clearRight: {
+    byte: 0,
+    bit: 1,
+    array: 'derivedIndications',
+  },
 }
 const turnoutOneSize = 3
 const doubleTrackOneMapping: DoubleTrackBlockMapping = {
@@ -84,7 +94,12 @@ const blockFourSize = 2
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
     -->
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
-      <Turnout :size="turnoutOneSize" direction="left" orientation="up" :mapping="turnoutOneMapping" />
+      <Turnout
+        :size="turnoutOneSize"
+        direction="left"
+        orientation="up"
+        :mapping="turnoutOneMapping"
+      />
       <!--
       <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
 

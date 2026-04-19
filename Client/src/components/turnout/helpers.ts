@@ -1,4 +1,12 @@
-import type { SignalAspect, SignalAspectRequest } from './types'
+import type { SignalAspect, SignalAspectRequest, TurnoutSignalId } from './types'
+
+function getLeftSideSignalId(direction: SignalAspectRequest['direction'], alignedSignalId: TurnoutSignalId): TurnoutSignalId {
+  return direction === 'left' ? 'single-track' : alignedSignalId
+}
+
+function getRightSideSignalId(direction: SignalAspectRequest['direction'], alignedSignalId: TurnoutSignalId): TurnoutSignalId {
+  return direction === 'left' ? alignedSignalId : 'single-track'
+}
 
 // Small turnout-specific helpers stay here so the component reads top-to-bottom.
 export function getSignalAspect({
@@ -6,20 +14,23 @@ export function getSignalAspect({
   hasClearRouteSources,
   isClearLeftActive,
   isClearRightActive,
+  direction,
+  alignedSignalId,
   activeSignalId,
 }: SignalAspectRequest): SignalAspect {
   if (hasClearRouteSources) {
-    if (signalId === 'single-track') {
-      return isClearLeftActive || isClearRightActive ? 'green' : 'red'
+    const leftSideSignalId = getLeftSideSignalId(direction, alignedSignalId)
+    const rightSideSignalId = getRightSideSignalId(direction, alignedSignalId)
+
+    if (isClearRightActive && signalId === leftSideSignalId) {
+      return 'green'
     }
 
-    if (signalId === 'track-one') {
-      return isClearLeftActive ? 'green' : 'red'
+    if (isClearLeftActive && signalId === rightSideSignalId) {
+      return 'green'
     }
 
-    if (signalId === 'track-two') {
-      return isClearRightActive ? 'green' : 'red'
-    }
+    return 'red'
   }
 
   return activeSignalId === signalId ? 'green' : 'red'

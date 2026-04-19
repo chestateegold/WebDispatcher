@@ -25,15 +25,11 @@ export interface TurnoutProps {
   direction?: TurnoutDirection
   orientation?: TurnoutOrientation
   mapping?: TurnoutMapping
-  clearLeft?: BitSourceLike | null
-  clearRight?: BitSourceLike | null
   activeSignalId?: TurnoutSignalId | null
 }
 
 export interface TurnoutMappingInput {
   mapping?: TurnoutMapping
-  clearLeft?: BitSourceLike | null
-  clearRight?: BitSourceLike | null
 }
 
 export interface RailColorArgs {
@@ -47,5 +43,7 @@ export interface SignalAspectRequest {
   hasClearRouteSources: boolean
   isClearLeftActive: boolean
   isClearRightActive: boolean
+  direction: TurnoutDirection
+  alignedSignalId: TurnoutSignalId
   activeSignalId: TurnoutSignalId | null
 }

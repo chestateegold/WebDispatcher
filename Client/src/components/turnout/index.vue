@@ -11,8 +11,6 @@ const props = withDefaults(defineProps<TurnoutProps>(), {
   direction: 'left',
   orientation: 'up',
   mapping: () => ({}),
-  clearLeft: null,
-  clearRight: null,
   activeSignalId: null,
 })
 
@@ -56,6 +54,8 @@ const signalPositions = computed(() => {
 })
 
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
+const hasActiveClearRoute = computed(() => isClearLeftActive.value || isClearRightActive.value)
+const alignedSignalId = computed<TurnoutSignalId>(() => (isSwitchNormal.value ? 'track-one' : 'track-two'))
 
 // Color logic
 function railColor({ occupied, switchState, clearActive }: RailColorArgs): string {
@@ -75,7 +75,7 @@ const singleTrackStyle = computed<RailStyle>(() => {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
       switchState: true,
-      clearActive: isClearLeftActive.value || isClearRightActive.value,
+      clearActive: hasActiveClearRoute.value,
     }),
   }
 })
@@ -85,7 +85,7 @@ const trackOneStyle = computed<RailStyle>(() => {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
       switchState: isSwitchNormal.value,
-      clearActive: isClearLeftActive.value,
+      clearActive: hasActiveClearRoute.value && isSwitchNormal.value,
     }),
   }
 })
@@ -95,7 +95,7 @@ const trackTwoStyle = computed<RailStyle>(() => {
     '--rail-stroke': railColor({
       occupied: isOccupied.value,
       switchState: isSwitchReversed.value,
-      clearActive: isClearRightActive.value,
+      clearActive: hasActiveClearRoute.value && isSwitchReversed.value,
     }),
   }
 })
@@ -122,6 +122,8 @@ function getSignalAspectForId(signalId: TurnoutSignalId) {
     hasClearRouteSources: hasClearRouteSources.value,
     isClearLeftActive: isClearLeftActive.value,
     isClearRightActive: isClearRightActive.value,
+    direction: props.direction,
+    alignedSignalId: alignedSignalId.value,
     activeSignalId: props.activeSignalId,
   })
 }

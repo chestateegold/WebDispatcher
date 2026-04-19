@@ -9,11 +9,11 @@ export const signalLayouts: Record<TurnoutDirection, SignalLayout[]> = {
   ],
   left: [
     { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'right' },
-    { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'left' },
-    { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'left' },
+    { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'left' },
+    { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'left' },
   ],
 }
 
 export const occupiedColor = '#d33'
-export const clearColor = '#2fbf71'
+export const clearColor = '#00b050'
 export const idleColor = '#555'

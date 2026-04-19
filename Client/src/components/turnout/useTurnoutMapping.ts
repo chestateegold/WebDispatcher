@@ -53,11 +53,11 @@ export function useTurnoutMapping(props: TurnoutMappingInput) {
 
   const isSwitchNormal = computed(() => !isSwitchReversed.value)
 
-  const isClearLeftActive = computed(() => getAnyBitValue(cmriStore, props.clearLeft))
+  const isClearLeftActive = computed(() => getAnyBitValue(cmriStore, props.mapping?.clearLeft))
 
-  const isClearRightActive = computed(() => getAnyBitValue(cmriStore, props.clearRight))
+  const isClearRightActive = computed(() => getAnyBitValue(cmriStore, props.mapping?.clearRight))
 
-  const hasClearRouteSources = computed(() => hasBitSource(props.clearLeft) || hasBitSource(props.clearRight))
+  const hasClearRouteSources = computed(() => hasBitSource(props.mapping?.clearLeft) || hasBitSource(props.mapping?.clearRight))
 
   return {
     isOccupied,
