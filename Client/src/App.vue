@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import { resolveClearRoute, type ClearRouteVisualState } from '@/clearRoute'
+import TrackBlock from '@/components/TrackBlock.vue'
+import Turnout from '@/components/turnout/index.vue'
+import { getClearRouteSourceId, resolveClearRoute, type ClearRouteVisualState } from '@/clearRoute'
+import { currentLayout } from '@/layout/currentLayout'
+import {
+  getLayoutItemSize,
+  isTrackBlockLayoutItem,
+  isTurnoutLayoutItem,
+} from '@/layout/schema'
 import { useCmriStore } from '@/stores/cmri'
-import type { BitSourceLike, CrossoverMapping, DoubleTrackBlockMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
+import type { BitSourceLike, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
 
 const cmriStore = useCmriStore()
+const activeLayout = currentLayout
 
 const showGridLines = false
 const showConnectionStatus = true
@@ -34,55 +43,6 @@ onUnmounted(() => {
   })
 })
 
-const blockOneMapping: TrackBlockMapping = {
-  occupied: { byte: 2, bit: 3 },
-}
-const blockOneSize = 2
-const blockTwoMapping: TrackBlockMapping = {
-  occupied: { byte: 2, bit: 2 },
-}
-const blockTwoSize = 3
-const crossover1Mapping: CrossoverMapping = {
-  mainOccupied: { byte: 2, bit: 0 },
-  crossingOccupied: { byte: 2, bit: 1 },
-}
-const crossoverSize = 3
-const blockThreeMapping: TrackBlockMapping = {
-  occupied: { byte: 1, bit: 2 },
-}
-const blockThreeSize = 2
-//switch 1
-const turnoutOneMapping: TurnoutMapping = {
-  occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
-  switchPosition: { byte: 1, bit: 3 },
-  clearLeft: {
-    byte: 0,
-    bit: 0,
-    array: 'derivedIndications',
-  },
-  clearRight: {
-    byte: 0,
-    bit: 1,
-    array: 'derivedIndications',
-  },
-}
-const turnoutOneSize = 3
-const doubleTrackOneMapping: DoubleTrackBlockMapping = {
-  trackOneOccupied: { byte: 0, bit: 1 },
-  trackTwoOccupied: { byte: 0, bit: 2 },
-}
-const doubleTrackOneSize = 3
-//switch 2
-const turnoutTwoMapping: TurnoutMapping = {
-  occupied: { byte: 0, bit: 0 },
-  switchPosition: { byte: 0, bit: 3 },
-}
-const turnoutTwoSize = 3
-const blockFourMapping: TrackBlockMapping = {
-  occupied: { byte: 2, bit: 3 },
-}
-const blockFourSize = 2
-
 function getBitSourceValue(source: BitSourceLike | undefined): boolean {
   if (!source) {
     return false
@@ -91,24 +51,90 @@ function getBitSourceValue(source: BitSourceLike | undefined): boolean {
   return cmriStore.getAnyBit(source)
 }
 
-function isTrackBlockOccupied(mapping: TrackBlockMapping): boolean {
-  return getBitSourceValue(mapping.occupied)
+function isTrackBlockOccupied(mapping: TrackBlockMapping | undefined): boolean {
+  return getBitSourceValue(mapping?.occupied)
 }
 
-const turnoutOneRightClearRouteStates = computed(() => {
+function getTurnoutClearRouteSource(mapping: TurnoutMapping | undefined, direction: 'left' | 'right'): BitSourceLike | undefined {
+  return direction === 'left' ? mapping?.clearLeft : mapping?.clearRight
+}
+
+const occupiedBlockStates = computed(() => {
+  const states: Record<string, boolean> = {}
+
+  for (const item of activeLayout.row) {
+    if (!isTrackBlockLayoutItem(item)) {
+      continue
+    }
+
+    states[item.id] = isTrackBlockOccupied(item.mapping)
+  }
+
+  return states
+})
+
+const clearRouteSourceStates = computed(() => {
+  const states: Record<string, boolean> = {}
+
+  for (const item of activeLayout.row) {
+    if (!isTurnoutLayoutItem(item)) {
+      continue
+    }
+
+    for (const source of item.controlPoint?.clearRouteSources ?? []) {
+      states[getClearRouteSourceId(item.id, source.direction)] = getBitSourceValue(
+        getTurnoutClearRouteSource(item.mapping, source.direction),
+      )
+    }
+  }
+
+  return states
+})
+
+const clearRouteStates = computed(() => {
   return resolveClearRoute({
-    isClear: getBitSourceValue(turnoutOneMapping.clearRight),
-    blocks: [
-      { id: 'block-one', occupied: isTrackBlockOccupied(blockOneMapping) },
-      { id: 'block-two', occupied: isTrackBlockOccupied(blockTwoMapping) },
-      { id: 'block-three', occupied: isTrackBlockOccupied(blockThreeMapping) },
-    ],
+    row: activeLayout.row,
+    occupiedBlocks: occupiedBlockStates.value,
+    routeStates: clearRouteSourceStates.value,
   })
 })
 
 function getTrackBlockVisualState(blockId: string): ClearRouteVisualState | undefined {
-  return turnoutOneRightClearRouteStates.value[blockId]
+  return clearRouteStates.value[blockId]
 }
+
+const renderedRowItems = computed(() => {
+  return activeLayout.row.map((item) => {
+    if (isTurnoutLayoutItem(item)) {
+      return {
+        id: item.id,
+        component: Turnout,
+        props: {
+          size: getLayoutItemSize(item),
+          direction: item.direction,
+          orientation: item.orientation,
+          mapping: item.mapping,
+        },
+      }
+    }
+
+    return {
+      id: item.id,
+      component: TrackBlock,
+      props: {
+        size: getLayoutItemSize(item),
+        mapping: item.mapping,
+        visualState: getTrackBlockVisualState(item.id),
+        blockEndLeft: item.blockEndLeft,
+        blockEndRight: item.blockEndRight,
+      },
+    }
+  })
+})
+
+const panelStyle = computed(() => ({
+  gridTemplateColumns: `repeat(${activeLayout.row.reduce((total, item) => total + getLayoutItemSize(item), 0)}, var(--grid-unit))`,
+}))
 </script>
 
 <template>
@@ -116,29 +142,13 @@ function getTrackBlockVisualState(blockId: string): ClearRouteVisualState | unde
     <div v-if="showConnectionStatus" :class="['connection-status', `connection-status-${cmriStore.connectionState}`]">
       {{ connectionStatusLabel }}
     </div>
-    <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
-      <Turnout :size="turnoutOneSize" direction="right" orientation="up" :mapping="turnoutOneMapping" />
-      <TrackBlock :size="2" :mapping="blockOneMapping" :visual-state="getTrackBlockVisualState('block-one')" />
-      <TrackBlock :size="2" :mapping="blockTwoMapping" :visual-state="getTrackBlockVisualState('block-two')" />
-      <TrackBlock :size="2" :mapping="blockThreeMapping" :visual-state="getTrackBlockVisualState('block-three')" />
-      <Turnout :size="turnoutTwoSize" direction="left" orientation="up" :mapping="turnoutTwoMapping" />
-
-      <!--
-      <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
-      <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
-      <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
-      <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
-      <Turnout
-        :size="turnoutOneSize"
-        direction="right"
-        orientation="down"
-        :mapping="turnoutOneMapping"
+    <div :class="['panel', { 'panel-grid-lines': showGridLines }]" :style="panelStyle">
+      <component
+        v-for="item in renderedRowItems"
+        :is="item.component"
+        :key="item.id"
+        v-bind="item.props"
       />
-      <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
-
-      <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />
-      <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
-    -->
     </div>
   </div>
 </template>
@@ -202,9 +212,6 @@ body {
 .panel {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(15
-      /*21*/
-      , var(--grid-unit));
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
   margin-bottom: 12px;
