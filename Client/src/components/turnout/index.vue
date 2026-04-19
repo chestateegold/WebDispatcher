@@ -1,137 +1,38 @@
 <script setup>
-import { computed } from 'vue'
-import Signal from './Signal.vue'
-import Geometry from './turnout/Geometry.vue'
-import { useTurnoutMapping } from './turnout/useTurnoutMapping'
-import styles from './cell.module.css'
+/* Turnout wrapper moved into a folder. */
+import styles from '../cell.module.css'
 
 const signalLayouts = {
   'up-right': [
-    {
-      id: 'single-track',
-      x: 0,
-      y: 15,
-      label: 'Single track signal',
-      facing: 'left',
-    },
-    {
-      id: 'track-one',
-      x: 60,
-      y: 45,
-      label: 'Track one signal',
-      facing: 'right',
-    },
-    {
-      id: 'track-two',
-      x: 60,
-      y: -5,
-      label: 'Track two signal',
-      facing: 'right',
-    },
+    { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'left' },
+    { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'right' },
+    { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'right' },
   ],
   'up-left': [
-    {
-      id: 'single-track',
-      x: 0,
-      y: 45,
-      label: 'Single track signal',
-      facing: 'right',
-    },
-    {
-      id: 'track-one',
-      x: 60,
-      y: -5,
-      label: 'Track one signal',
-      facing: 'left',
-    },
-    {
-      id: 'track-two',
-      x: 60,
-      y: 45,
-      label: 'Track two signal',
-      facing: 'left',
-    },
+    { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'right' },
+    { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'left' },
+    { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'left' },
   ],
   'down-right': [
-    {
-      id: 'single-track',
-      x: 0,
-      y: 15,
-      label: 'Single track signal',
-      facing: 'right',
-    },
-    {
-      id: 'track-one',
-      x: 60,
-      y: 45,
-      label: 'Track one signal',
-      facing: 'left',
-    },
-    {
-      id: 'track-two',
-      x: 60,
-      y: -5,
-      label: 'Track two signal',
-      facing: 'left',
-    },
+    { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'right' },
+    { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'left' },
+    { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'left' },
   ],
   'down-left': [
-    {
-      id: 'single-track',
-      x: 0,
-      y: 45,
-      label: 'Single track signal',
-      facing: 'left',
-    },
-    {
-      id: 'track-one',
-      x: 60,
-      y: -5,
-      label: 'Track one signal',
-      facing: 'right',
-    },
-    {
-      id: 'track-two',
-      x: 60,
-      y: 45,
-      label: 'Track two signal',
-      facing: 'right',
-    },
+    { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'left' },
+    { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'right' },
+    { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'right' },
   ],
 }
 
 const props = defineProps({
-  size: {
-    type: Number,
-    default: 3,
-    validator: (value) => Number.isInteger(value) && value >= 1,
-  },
-  direction: {
-    type: String,
-    default: 'left',
-    validator: (value) => ['left', 'right'].includes(value),
-  },
-  orientation: {
-    type: String,
-    default: 'up',
-    validator: (value) => ['up', 'down'].includes(value),
-  },
-  mapping: {
-    type: Object,
-    default: () => ({}),
-  },
-  clearLeft: {
-    type: [Object, Array],
-    default: null,
-  },
-  clearRight: {
-    type: [Object, Array],
-    default: null,
-  },
-  activeSignalId: {
-    type: String,
-    default: null,
-  },
+  size: { type: Number, default: 3, validator: (v) => Number.isInteger(v) && v >= 1 },
+  direction: { type: String, default: 'left', validator: (v) => ['left', 'right'].includes(v) },
+  orientation: { type: String, default: 'up', validator: (v) => ['up', 'down'].includes(v) },
+  mapping: { type: Object, default: () => ({}) },
+  clearLeft: { type: [Object, Array], default: null },
+  clearRight: { type: [Object, Array], default: null },
+  activeSignalId: { type: String, default: null },
 })
 
 const emit = defineEmits(['signal-clicked'])
@@ -147,11 +48,9 @@ const {
 
 // Keep logical direction unchanged; use rotation for `down` orientation
 const effectiveDirection = computed(() => props.direction)
-
 const directionTransform = computed(() =>
   effectiveDirection.value === 'right' ? 'translate(60,0) scale(-1,1)' : undefined,
 )
-
 const isHorizontallyMirrored = computed(() => effectiveDirection.value === 'right')
 
 // Rotate 180deg about the viewBox center (viewBox is "0 -20 60 80" -> center 30,20)
@@ -162,7 +61,6 @@ const orientationTransform = computed(() =>
 
 const signalPositions = computed(() => {
   const layoutKey = `${props.orientation}-${props.direction}`
-
   return signalLayouts[layoutKey] ?? signalLayouts['up-right']
 })
 
@@ -196,9 +94,7 @@ const trackTwoStyle = computed(() => ({
       : idleColor,
 }))
 
-const layoutStyle = computed(() => ({
-  gridColumn: `span ${props.size}`,
-}))
+const layoutStyle = computed(() => ({ gridColumn: `span ${props.size}` }))
 
 function rotateFacing180(f) {
   if (f === 'left') return 'right'
@@ -210,18 +106,13 @@ function rotateFacing180(f) {
 
 function getRenderedFacing(facing) {
   let result = facing
-
-  // account for the 180deg rotation when orientation is down
   if (props.orientation === 'down') {
     result = rotateFacing180(result)
   }
-
-  // then compensate for horizontal mirroring (direction transform)
   if (isHorizontallyMirrored.value) {
     if (result === 'left') return 'right'
     if (result === 'right') return 'left'
   }
-
   return result
 }
 
@@ -230,16 +121,13 @@ function getSignalAspect(signalId) {
     if (signalId === 'single-track') {
       return clearLeftActive.value || clearRightActive.value ? 'green' : 'red'
     }
-
     if (signalId === 'track-one') {
       return clearLeftActive.value ? 'green' : 'red'
     }
-
     if (signalId === 'track-two') {
       return clearRightActive.value ? 'green' : 'red'
     }
   }
-
   return props.activeSignalId === signalId ? 'green' : 'red'
 }
 
@@ -257,6 +145,7 @@ function onSignalClicked(signalId) {
             :label="signal.label" :aspect="getSignalAspect(signal.id)"
             :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
             @activate="onSignalClicked" />
+
           <Geometry :thrown="switchReversed" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
             :track-two-style="trackTwoStyle" />
         </g>
@@ -264,3 +153,10 @@ function onSignalClicked(signalId) {
     </svg>
   </div>
 </template>
+
+<style scoped>
+.switch-border {
+  stroke: #fff;
+  stroke-width: 10;
+}
+</style>

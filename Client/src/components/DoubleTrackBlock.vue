@@ -1,6 +1,4 @@
 <script setup>
-import { computed } from 'vue'
-import { useCmriStore } from '../stores/cmri'
 import styles from './cell.module.css'
 
 const props = defineProps({

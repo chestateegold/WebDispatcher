@@ -1,11 +1,4 @@
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
-import { useCmriStore } from './stores/cmri'
-import TrackBlock from './components/TrackBlock.vue'
-import Crossover from './components/Crossover.vue'
-import DoubleTrackBlock from './components/DoubleTrackBlock.vue'
-import Turnout from './components/Turnout.vue'
-
 const cmriStore = useCmriStore()
 
 const showGridLines = false
