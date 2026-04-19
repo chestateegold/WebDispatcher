@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { resolveClearRoute, type ClearRouteVisualState } from '@/clearRoute'
 import { useCmriStore } from '@/stores/cmri'
-import type { CrossoverMapping, DoubleTrackBlockMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
+import type { BitSourceLike, CrossoverMapping, DoubleTrackBlockMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
 
 const cmriStore = useCmriStore()
 
@@ -80,6 +81,33 @@ const blockFourMapping: TrackBlockMapping = {
   occupied: { byte: 2, bit: 3 },
 }
 const blockFourSize = 2
+
+function getBitSourceValue(source: BitSourceLike | undefined): boolean {
+  if (!source) {
+    return false
+  }
+
+  return cmriStore.getAnyBit(source)
+}
+
+function isTrackBlockOccupied(mapping: TrackBlockMapping): boolean {
+  return getBitSourceValue(mapping.occupied)
+}
+
+const turnoutOneRightClearRouteStates = computed(() => {
+  return resolveClearRoute({
+    isClear: getBitSourceValue(turnoutOneMapping.clearRight),
+    blocks: [
+      { id: 'block-one', occupied: isTrackBlockOccupied(blockOneMapping) },
+      { id: 'block-two', occupied: isTrackBlockOccupied(blockTwoMapping) },
+      { id: 'block-three', occupied: isTrackBlockOccupied(blockThreeMapping) },
+    ],
+  })
+})
+
+function getTrackBlockVisualState(blockId: string): ClearRouteVisualState | undefined {
+  return turnoutOneRightClearRouteStates.value[blockId]
+}
 </script>
 
 <template>
@@ -88,11 +116,26 @@ const blockFourSize = 2
       {{ connectionStatusLabel }}
     </div>
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
+      <Turnout
+        :size="turnoutOneSize"
+        direction="right"
+        orientation="up"
+        :mapping="turnoutOneMapping"
+      />
+      <TrackBlock :size="2" :mapping="blockOneMapping" :visual-state="getTrackBlockVisualState('block-one')" />
+      <TrackBlock :size="2" :mapping="blockTwoMapping" :visual-state="getTrackBlockVisualState('block-two')" />
+      <TrackBlock :size="2" :mapping="blockThreeMapping" :visual-state="getTrackBlockVisualState('block-three')" />
+      <Turnout
+        :size="turnoutTwoSize"
+        direction="left"
+        orientation="up"
+        :mapping="turnoutTwoMapping"
+      />
+
       <!--
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
-    -->
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
       <Turnout
         :size="turnoutOneSize"
@@ -100,7 +143,6 @@ const blockFourSize = 2
         orientation="down"
         :mapping="turnoutOneMapping"
       />
-      <!--
       <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
 
       <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />
@@ -169,7 +211,7 @@ body {
 .panel {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(21, var(--grid-unit));
+  grid-template-columns: repeat(12/*21*/, var(--grid-unit));
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
   margin-bottom: 12px;
