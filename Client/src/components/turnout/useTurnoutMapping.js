@@ -29,9 +29,9 @@ function getAnyBitValue(store, source) {
 export function useTurnoutMapping(props) {
   const cmriStore = useCmriStore()
 
-  const occupied = computed(() => getAnyBitValue(cmriStore, props.mapping?.occupied))
+  const isOccupied = computed(() => getAnyBitValue(cmriStore, props.mapping?.occupied))
 
-  const switchReversed = computed(() => {
+  const isSwitchReversed = computed(() => {
     const source = props.mapping?.switchPosition
 
     if (!hasBitSource(source)) {
@@ -41,20 +41,20 @@ export function useTurnoutMapping(props) {
     return !getBitValue(cmriStore, source)
   })
 
-  const switchNormal = computed(() => !switchReversed.value)
+  const isSwitchNormal = computed(() => !isSwitchReversed.value)
 
-  const clearLeftActive = computed(() => getAnyBitValue(cmriStore, props.clearLeft))
+  const isClearLeftActive = computed(() => getAnyBitValue(cmriStore, props.clearLeft))
 
-  const clearRightActive = computed(() => getAnyBitValue(cmriStore, props.clearRight))
+  const isClearRightActive = computed(() => getAnyBitValue(cmriStore, props.clearRight))
 
   const hasClearRouteSources = computed(() => hasBitSource(props.clearLeft) || hasBitSource(props.clearRight))
 
   return {
-    occupied,
-    switchNormal,
-    switchReversed,
-    clearLeftActive,
-    clearRightActive,
+    isOccupied,
+    isSwitchNormal,
+    isSwitchReversed,
+    isClearLeftActive,
+    isClearRightActive,
     hasClearRouteSources,
   }
 }

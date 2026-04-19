@@ -1,19 +1,8 @@
 <script setup>
 /* Turnout wrapper moved into a folder. */
 import styles from '../cell.module.css'
-
-const signalLayouts = {
-  right: [
-    { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'left' },
-    { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'right' },
-    { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'right' },
-  ],
-  left: [
-    { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'right' },
-    { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'left' },
-    { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'left' },
-  ],
-}
+import { clearColor, idleColor, occupiedColor, signalLayouts } from './constants'
+import { getSignalAspect } from './helpers'
 
 const props = defineProps({
   size: { type: Number, default: 3, validator: (v) => Number.isInteger(v) && v >= 1 },
@@ -27,27 +16,38 @@ const props = defineProps({
 
 const emit = defineEmits(['signal-clicked'])
 
+// Store / mapping
 const {
-  occupied,
-  switchNormal,
-  switchReversed,
-  clearLeftActive,
-  clearRightActive,
+  isOccupied,
+  isSwitchNormal,
+  isSwitchReversed,
+  isClearLeftActive,
+  isClearRightActive,
   hasClearRouteSources,
 } = useTurnoutMapping(props)
 
+// Transforms
 // Keep logical direction unchanged; use rotation for `down` orientation
 const effectiveDirection = computed(() => props.direction)
-const directionTransform = computed(() =>
-  effectiveDirection.value === 'right' ? 'translate(60,0) scale(-1,1)' : undefined,
-)
 const isHorizontallyMirrored = computed(() => effectiveDirection.value === 'right')
 
-// Rotate 180deg about the viewBox center (viewBox is "0 -20 60 80" -> center 30,20)
-// Small translate to align baseline; rotated variant moved up 5px (translate 10) from previous 15.
-const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,10) rotate(180 30 20)' : 'translate(0,-10)',
-)
+// Compose the view transform in one place so the template only needs a single <g>.
+const viewTransform = computed(() => {
+  const transforms = []
+
+  if (props.orientation === 'down') {
+    // Rotate about the SVG viewBox center and nudge into position.
+    transforms.push('translate(0,10)', 'rotate(180 30 20)')
+  } else {
+    transforms.push('translate(0,-10)')
+  }
+
+  if (effectiveDirection.value === 'right') {
+    transforms.push('translate(60,0) scale(-1,1)')
+  }
+
+  return transforms.join(' ')
+})
 
 const signalPositions = computed(() => {
   return signalLayouts[props.direction] ?? signalLayouts.right
@@ -55,36 +55,52 @@ const signalPositions = computed(() => {
 
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
 
-const occupiedColor = '#d33'
-const clearColor = '#2fbf71'
-const idleColor = '#555'
+// Color logic
+function railColor({ occupied, switchState, clearActive }) {
+  if (occupied && switchState) {
+    return occupiedColor
+  }
 
-const singleTrackStyle = computed(() => ({
-  '--rail-stroke': occupied.value
-    ? occupiedColor
-    : clearLeftActive.value || clearRightActive.value
-      ? clearColor
-      : idleColor,
-}))
+  if (clearActive) {
+    return clearColor
+  }
 
-const trackOneStyle = computed(() => ({
-  '--rail-stroke': occupied.value && switchNormal.value
-    ? occupiedColor
-    : clearLeftActive.value
-      ? clearColor
-      : idleColor,
-}))
+  return idleColor
+}
 
-const trackTwoStyle = computed(() => ({
-  '--rail-stroke': occupied.value && switchReversed.value
-    ? occupiedColor
-    : clearRightActive.value
-      ? clearColor
-      : idleColor,
-}))
+const singleTrackStyle = computed(() => {
+  return {
+    '--rail-stroke': railColor({
+      occupied: isOccupied.value,
+      switchState: true,
+      clearActive: isClearLeftActive.value || isClearRightActive.value,
+    }),
+  }
+})
+
+const trackOneStyle = computed(() => {
+  return {
+    '--rail-stroke': railColor({
+      occupied: isOccupied.value,
+      switchState: isSwitchNormal.value,
+      clearActive: isClearLeftActive.value,
+    }),
+  }
+})
+
+const trackTwoStyle = computed(() => {
+  return {
+    '--rail-stroke': railColor({
+      occupied: isOccupied.value,
+      switchState: isSwitchReversed.value,
+      clearActive: isClearRightActive.value,
+    }),
+  }
+})
 
 const layoutStyle = computed(() => ({ gridColumn: `span ${props.size}` }))
 
+// Helpers
 function getRenderedFacing(facing) {
   let result = facing
 
@@ -98,39 +114,23 @@ function getRenderedFacing(facing) {
   return result
 }
 
-function getSignalAspect(signalId) {
-  if (hasClearRouteSources.value) {
-    if (signalId === 'single-track') {
-      return clearLeftActive.value || clearRightActive.value ? 'green' : 'red'
-    }
-    if (signalId === 'track-one') {
-      return clearLeftActive.value ? 'green' : 'red'
-    }
-    if (signalId === 'track-two') {
-      return clearRightActive.value ? 'green' : 'red'
-    }
-  }
-  return props.activeSignalId === signalId ? 'green' : 'red'
-}
-
 function onSignalClicked(signalId) {
   emit('signal-clicked', signalId)
 }
 </script>
 
 <template>
+  <!-- Template -->
   <div :class="[styles.component, styles.layoutItem]" :style="layoutStyle">
     <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
-      <g :transform="orientationTransform">
-        <g :transform="directionTransform">
-          <Signal v-for="signal in signalPositions" :id="signal.id" :key="signal.id" :x="signal.x" :y="signal.y"
-            :label="signal.label" :aspect="getSignalAspect(signal.id)"
-            :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
-            @activate="onSignalClicked" />
+      <g :transform="viewTransform">
+        <Signal v-for="signal in signalPositions" :id="signal.id" :key="signal.id" :x="signal.x" :y="signal.y"
+          :label="signal.label" :aspect="getSignalAspect({ signalId: signal.id, hasClearRouteSources: hasClearRouteSources.value, isClearLeftActive: isClearLeftActive.value, isClearRightActive: isClearRightActive.value, activeSignalId: props.activeSignalId })"
+          :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
+          @activate="onSignalClicked" />
 
-          <Geometry :thrown="switchReversed" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
-            :track-two-style="trackTwoStyle" />
-        </g>
+        <Geometry :thrown="isSwitchReversed" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
+          :track-two-style="trackTwoStyle" />
       </g>
     </svg>
   </div>

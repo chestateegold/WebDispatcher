@@ -125,3 +125,7 @@ vs/
 *.slnx
 /Client/.vscode
 /.github
+
+# Ignore Markdown files except repository root README.md
+*.md
+!README.md
