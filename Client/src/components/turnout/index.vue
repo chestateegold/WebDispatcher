@@ -3,25 +3,15 @@
 import styles from '../cell.module.css'
 
 const signalLayouts = {
-  'up-right': [
+  right: [
     { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'left' },
     { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'right' },
     { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'right' },
   ],
-  'up-left': [
+  left: [
     { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'right' },
     { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'left' },
     { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'left' },
-  ],
-  'down-right': [
-    { id: 'single-track', x: 0, y: 15, label: 'Single track signal', facing: 'right' },
-    { id: 'track-one', x: 60, y: 45, label: 'Track one signal', facing: 'left' },
-    { id: 'track-two', x: 60, y: -5, label: 'Track two signal', facing: 'left' },
-  ],
-  'down-left': [
-    { id: 'single-track', x: 0, y: 45, label: 'Single track signal', facing: 'left' },
-    { id: 'track-one', x: 60, y: -5, label: 'Track one signal', facing: 'right' },
-    { id: 'track-two', x: 60, y: 45, label: 'Track two signal', facing: 'right' },
   ],
 }
 
@@ -60,8 +50,7 @@ const orientationTransform = computed(() =>
 )
 
 const signalPositions = computed(() => {
-  const layoutKey = `${props.orientation}-${props.direction}`
-  return signalLayouts[layoutKey] ?? signalLayouts['up-right']
+  return signalLayouts[props.direction] ?? signalLayouts.right
 })
 
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
@@ -96,19 +85,12 @@ const trackTwoStyle = computed(() => ({
 
 const layoutStyle = computed(() => ({ gridColumn: `span ${props.size}` }))
 
-function rotateFacing180(f) {
-  if (f === 'left') return 'right'
-  if (f === 'right') return 'left'
-  if (f === 'up') return 'down'
-  if (f === 'down') return 'up'
-  return f
-}
-
 function getRenderedFacing(facing) {
   let result = facing
-  if (props.orientation === 'down') {
-    result = rotateFacing180(result)
-  }
+
+  // With the whole turnout rotating around its center for `down`,
+  // the signal glyph rotates with the turnout. Only compensate for
+  // the horizontal mirror used by `direction === 'right'`.
   if (isHorizontallyMirrored.value) {
     if (result === 'left') return 'right'
     if (result === 'right') return 'left'
