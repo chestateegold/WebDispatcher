@@ -8,6 +8,7 @@ const cmriStore = useCmriStore()
 const showGridLines = false
 const showConnectionStatus = true
 
+//TODO: move this and the markup to a separate component
 const connectionStatusLabel = computed(() => {
   switch (cmriStore.connectionState) {
     case 'connected':
@@ -116,21 +117,11 @@ function getTrackBlockVisualState(blockId: string): ClearRouteVisualState | unde
       {{ connectionStatusLabel }}
     </div>
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
-      <Turnout
-        :size="turnoutOneSize"
-        direction="right"
-        orientation="up"
-        :mapping="turnoutOneMapping"
-      />
+      <Turnout :size="turnoutOneSize" direction="right" orientation="up" :mapping="turnoutOneMapping" />
       <TrackBlock :size="2" :mapping="blockOneMapping" :visual-state="getTrackBlockVisualState('block-one')" />
       <TrackBlock :size="2" :mapping="blockTwoMapping" :visual-state="getTrackBlockVisualState('block-two')" />
       <TrackBlock :size="2" :mapping="blockThreeMapping" :visual-state="getTrackBlockVisualState('block-three')" />
-      <Turnout
-        :size="turnoutTwoSize"
-        direction="left"
-        orientation="up"
-        :mapping="turnoutTwoMapping"
-      />
+      <Turnout :size="turnoutTwoSize" direction="left" orientation="up" :mapping="turnoutTwoMapping" />
 
       <!--
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
@@ -211,7 +202,9 @@ body {
 .panel {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(12/*21*/, var(--grid-unit));
+  grid-template-columns: repeat(15
+      /*21*/
+      , var(--grid-unit));
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
   margin-bottom: 12px;

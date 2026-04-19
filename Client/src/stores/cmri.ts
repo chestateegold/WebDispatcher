@@ -83,7 +83,7 @@ export const useCmriStore = defineStore('cmri', () => {
 
   const connection = new HubConnectionBuilder()
     .withUrl('/cmriHub')
-    .withAutomaticReconnect()
+    .withAutomaticReconnect([0, 2000, 10000])
     .configureLogging(LogLevel.Information)
     .build()
 
