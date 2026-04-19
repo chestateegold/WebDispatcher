@@ -44,6 +44,7 @@ export interface SignalAspectRequest {
   isClearLeftActive: boolean
   isClearRightActive: boolean
   direction: TurnoutDirection
+  orientation: TurnoutOrientation
   alignedSignalId: TurnoutSignalId
   activeSignalId: TurnoutSignalId | null
 }

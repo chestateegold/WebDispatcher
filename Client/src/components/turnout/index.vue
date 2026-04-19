@@ -123,6 +123,7 @@ function getSignalAspectForId(signalId: TurnoutSignalId) {
     isClearLeftActive: isClearLeftActive.value,
     isClearRightActive: isClearRightActive.value,
     direction: props.direction,
+    orientation: props.orientation,
     alignedSignalId: alignedSignalId.value,
     activeSignalId: props.activeSignalId,
   })

@@ -15,12 +15,18 @@ export function getSignalAspect({
   isClearLeftActive,
   isClearRightActive,
   direction,
+  orientation,
   alignedSignalId,
   activeSignalId,
 }: SignalAspectRequest): SignalAspect {
   if (hasClearRouteSources) {
-    const leftSideSignalId = getLeftSideSignalId(direction, alignedSignalId)
-    const rightSideSignalId = getRightSideSignalId(direction, alignedSignalId)
+    const leftSideSignalId = orientation === 'down'
+      ? getRightSideSignalId(direction, alignedSignalId)
+      : getLeftSideSignalId(direction, alignedSignalId)
+
+    const rightSideSignalId = orientation === 'down'
+      ? getLeftSideSignalId(direction, alignedSignalId)
+      : getRightSideSignalId(direction, alignedSignalId)
 
     if (isClearRightActive && signalId === leftSideSignalId) {
       return 'green'

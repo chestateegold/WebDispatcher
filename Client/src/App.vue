@@ -96,8 +96,8 @@ const blockFourSize = 2
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
       <Turnout
         :size="turnoutOneSize"
-        direction="left"
-        orientation="up"
+        direction="right"
+        orientation="down"
         :mapping="turnoutOneMapping"
       />
       <!--
