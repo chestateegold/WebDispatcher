@@ -33,6 +33,22 @@ function normalizeFramePayload(payload) {
   return []
 }
 
+function normalizeEnvelopePayload(payload) {
+  if (payload && typeof payload === 'object' && !Array.isArray(payload) && !(payload instanceof Uint8Array)) {
+    if ('indications' in payload || 'derivedIndications' in payload) {
+      return {
+        indications: normalizeFramePayload(payload.indications),
+        derivedIndications: normalizeFramePayload(payload.derivedIndications),
+      }
+    }
+  }
+
+  return {
+    indications: normalizeFramePayload(payload),
+    derivedIndications: [],
+  }
+}
+
 function normalizeBitSources(source) {
   if (Array.isArray(source)) {
     return source
@@ -46,7 +62,9 @@ function normalizeBitSources(source) {
 }
 
 export const useCmriStore = defineStore('cmri', () => {
-  const bytes = ref([...EMPTY_FRAME])
+  const indications = ref([...EMPTY_FRAME])
+  const derivedIndications = ref([...EMPTY_FRAME])
+  const bytes = indications
   const connectionState = ref('disconnected')
   let connectionPromise = null
   let reconnectTimer = null
@@ -59,7 +77,7 @@ export const useCmriStore = defineStore('cmri', () => {
     .build()
 
   connection.on('ReceiveMessage', (payload) => {
-    setFrame(normalizeFramePayload(payload))
+    setFrame(normalizeEnvelopePayload(payload))
   })
 
   connection.onreconnecting(() => {
@@ -99,14 +117,21 @@ export const useCmriStore = defineStore('cmri', () => {
     }, RECONNECT_DELAY_MS)
   }
 
-  function setFrame(nextBytes) {
+  function normalizeStoredFrame(nextBytes) {
     const normalized = Array.isArray(nextBytes) ? nextBytes.slice(0, FRAME_SIZE) : []
 
-    bytes.value = EMPTY_FRAME.map((fallback, index) => {
+    return EMPTY_FRAME.map((fallback, index) => {
       const value = normalized[index]
 
       return Number.isInteger(value) ? value & 0xff : fallback
     })
+  }
+
+  function setFrame(nextPayload) {
+    const envelope = normalizeEnvelopePayload(nextPayload)
+
+    indications.value = normalizeStoredFrame(envelope.indications)
+    derivedIndications.value = normalizeStoredFrame(envelope.derivedIndications)
   }
 
   async function startConnection() {
@@ -164,7 +189,11 @@ export const useCmriStore = defineStore('cmri', () => {
     connectionState.value = 'disconnected'
   }
 
-  function getBit(byteIndex, bitIndex) {
+  function getFrame(frameName = 'indications') {
+    return frameName === 'derivedIndications' ? derivedIndications.value : indications.value
+  }
+
+  function getBit(byteIndex, bitIndex, frameName = 'indications') {
     if (!Number.isInteger(byteIndex) || byteIndex < 0 || byteIndex >= FRAME_SIZE) {
       return false
     }
@@ -173,15 +202,17 @@ export const useCmriStore = defineStore('cmri', () => {
       return false
     }
 
-    return (bytes.value[byteIndex] & (1 << bitIndex)) !== 0
+    return (getFrame(frameName)[byteIndex] & (1 << bitIndex)) !== 0
   }
 
   function getAnyBit(source) {
-    return normalizeBitSources(source).some(({ byte, bit }) => getBit(byte, bit))
+    return normalizeBitSources(source).some(({ byte, bit, array }) => getBit(byte, bit, array))
   }
 
   return {
     bytes,
+    indications,
+    derivedIndications,
     connectionState,
     connect,
     disconnect,

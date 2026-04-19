@@ -1,8 +1,8 @@
 <script setup>
-/* TODO: maybe consider rotation around the center instead of reflecting */
 import { computed } from 'vue'
-import { useCmriStore } from '../stores/cmri'
 import Signal from './Signal.vue'
+import Geometry from './turnout/Geometry.vue'
+import { useTurnoutMapping } from './turnout/useTurnoutMapping'
 import styles from './cell.module.css'
 
 const signalLayouts = {
@@ -120,6 +120,14 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  clearLeft: {
+    type: [Object, Array],
+    default: null,
+  },
+  clearRight: {
+    type: [Object, Array],
+    default: null,
+  },
   activeSignalId: {
     type: String,
     default: null,
@@ -128,19 +136,17 @@ const props = defineProps({
 
 const emit = defineEmits(['signal-clicked'])
 
-const cmriStore = useCmriStore()
+const {
+  occupied,
+  switchNormal,
+  switchReversed,
+  clearLeftActive,
+  clearRightActive,
+  hasClearRouteSources,
+} = useTurnoutMapping(props)
 
-// Compute an effective direction so when the turnout is flipped
-// over the X axis (`orientation === 'down') the visual left/right
-// are treated consistently for the user. This keeps the switch
-// position semantics unchanged while matching the rendered direction.
-const effectiveDirection = computed(() => {
-  if (props.orientation === 'down') {
-    return props.direction === 'left' ? 'right' : 'left'
-  }
-
-  return props.direction
-})
+// Keep logical direction unchanged; use rotation for `down` orientation
+const effectiveDirection = computed(() => props.direction)
 
 const directionTransform = computed(() =>
   effectiveDirection.value === 'right' ? 'translate(60,0) scale(-1,1)' : undefined,
@@ -148,31 +154,11 @@ const directionTransform = computed(() =>
 
 const isHorizontallyMirrored = computed(() => effectiveDirection.value === 'right')
 
+// Rotate 180deg about the viewBox center (viewBox is "0 -20 60 80" -> center 30,20)
+// Small translate to align baseline; rotated variant moved up 5px (translate 10) from previous 15.
 const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,50) scale(1,-1)' : 'translate(0,-10)',
+  props.orientation === 'down' ? 'translate(0,10) rotate(180 30 20)' : 'translate(0,-10)',
 )
-
-const occupied = computed(() => {
-  const source = props.mapping?.occupied
-
-  if (!source) {
-    return false
-  }
-
-  return cmriStore.getAnyBit(source)
-})
-
-const switchReversed = computed(() => {
-  const source = props.mapping?.switchPosition
-
-  if (!source) {
-    return false
-  }
-
-  return !cmriStore.getBit(source.byte, source.bit)
-})
-
-const switchNormal = computed(() => !switchReversed.value)
 
 const signalPositions = computed(() => {
   const layoutKey = `${props.orientation}-${props.direction}`
@@ -182,39 +168,79 @@ const signalPositions = computed(() => {
 
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
 
-const activeColor = '#d33'
+const occupiedColor = '#d33'
+const clearColor = '#2fbf71'
 const idleColor = '#555'
 
 const singleTrackStyle = computed(() => ({
-  '--rail-stroke': occupied.value ? activeColor : idleColor,
+  '--rail-stroke': occupied.value
+    ? occupiedColor
+    : clearLeftActive.value || clearRightActive.value
+      ? clearColor
+      : idleColor,
 }))
 
 const trackOneStyle = computed(() => ({
-  '--rail-stroke': occupied.value && switchNormal.value ? activeColor : idleColor,
+  '--rail-stroke': occupied.value && switchNormal.value
+    ? occupiedColor
+    : clearLeftActive.value
+      ? clearColor
+      : idleColor,
 }))
 
 const trackTwoStyle = computed(() => ({
-  '--rail-stroke': occupied.value && switchReversed.value ? activeColor : idleColor,
+  '--rail-stroke': occupied.value && switchReversed.value
+    ? occupiedColor
+    : clearRightActive.value
+      ? clearColor
+      : idleColor,
 }))
 
 const layoutStyle = computed(() => ({
   gridColumn: `span ${props.size}`,
 }))
 
+function rotateFacing180(f) {
+  if (f === 'left') return 'right'
+  if (f === 'right') return 'left'
+  if (f === 'up') return 'down'
+  if (f === 'down') return 'up'
+  return f
+}
+
 function getRenderedFacing(facing) {
-  if (!isHorizontallyMirrored.value) {
-    return facing
+  let result = facing
+
+  // account for the 180deg rotation when orientation is down
+  if (props.orientation === 'down') {
+    result = rotateFacing180(result)
   }
 
-  if (facing === 'left') {
-    return 'right'
+  // then compensate for horizontal mirroring (direction transform)
+  if (isHorizontallyMirrored.value) {
+    if (result === 'left') return 'right'
+    if (result === 'right') return 'left'
   }
 
-  if (facing === 'right') {
-    return 'left'
+  return result
+}
+
+function getSignalAspect(signalId) {
+  if (hasClearRouteSources.value) {
+    if (signalId === 'single-track') {
+      return clearLeftActive.value || clearRightActive.value ? 'green' : 'red'
+    }
+
+    if (signalId === 'track-one') {
+      return clearLeftActive.value ? 'green' : 'red'
+    }
+
+    if (signalId === 'track-two') {
+      return clearRightActive.value ? 'green' : 'red'
+    }
   }
 
-  return facing
+  return props.activeSignalId === signalId ? 'green' : 'red'
 }
 
 function onSignalClicked(signalId) {
@@ -223,60 +249,18 @@ function onSignalClicked(signalId) {
 </script>
 
 <template>
-  <div :class="[styles.component, styles.layoutItem, 'turnout', { thrown: switchReversed }]" :style="layoutStyle">
+  <div :class="[styles.component, styles.layoutItem]" :style="layoutStyle">
     <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
       <g :transform="orientationTransform">
         <g :transform="directionTransform">
           <Signal v-for="signal in signalPositions" :id="signal.id" :key="signal.id" :x="signal.x" :y="signal.y"
-            :label="signal.label" :aspect="activeSignalId === signal.id ? 'green' : 'red'"
+            :label="signal.label" :aspect="getSignalAspect(signal.id)"
             :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
             @activate="onSignalClicked" />
-
-          <!-- single track -->
-          <line x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" :style="singleTrackStyle" />
-          <line x1="1" y1="30" x2="17" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />
-
-          <!-- track 1 -->
-          <line x1="60" y1="24" x2="60" y2="36" :class="[styles.blockEnd, styles.rail]" :style="trackOneStyle" />
-          <line x1="42" y1="30" x2="59" y2="30" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
-
-          <!-- track 2 -->
-          <polyline points="39,18 47,10 59,10" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" />
-          <line x1="60" y1="4" x2="60" y2="16" :class="[styles.blockEnd, styles.rail]" :style="trackTwoStyle" />
-
-          <!-- turnout normal -->
-          <line x1="17" y1="30" x2="42" y2="30"
-            :class="[styles.straight, styles.rail, 'switch-border', 'switch-normal']" />
-          <line x1="18" y1="30" x2="41" y2="30" :class="[styles.straight, styles.rail, 'switch-normal']"
-            :style="trackOneStyle" />
-
-          <!-- turnout reverse -->
-          <polyline points="17,30 27,30 39,18"
-            :class="[styles.straight, styles.rail, 'switch-border', 'switch-reverse']" />
-          <polyline points="18,30 27,30 38,19" :class="[styles.straight, styles.rail, 'switch-reverse']"
-            :style="trackTwoStyle" />
+          <Geometry :thrown="switchReversed" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
+            :track-two-style="trackTwoStyle" />
         </g>
       </g>
     </svg>
   </div>
 </template>
-
-<style scoped>
-.switch-border {
-  stroke: #fff;
-  stroke-width: 10;
-}
-
-.turnout .switch-normal,
-.turnout .switch-reverse {
-  opacity: 0;
-}
-
-.turnout:not(.thrown) .switch-normal {
-  opacity: 1;
-}
-
-.turnout.thrown .switch-reverse {
-  opacity: 1;
-}
-</style>

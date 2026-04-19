@@ -89,10 +89,12 @@ const blockFourSize = 2
     -->
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
       <Turnout :size="turnoutOneSize" direction="left" orientation="up" :mapping="turnoutOneMapping" />
+      <!--
       <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
 
       <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />
       <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
+    -->
     </div>
   </div>
 </template>
