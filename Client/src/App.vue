@@ -1,16 +1,14 @@
-<script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
-import { useCmriStore } from './stores/cmri'
-import TrackBlock from './components/TrackBlock.vue'
-import Crossover from './components/Crossover.vue'
-import DoubleTrackBlock from './components/DoubleTrackBlock.vue'
-import Turnout from './components/Turnout.vue'
+<script setup lang="ts">
+import { resolveClearRoute, type ClearRouteVisualState } from '@/clearRoute'
+import { useCmriStore } from '@/stores/cmri'
+import type { BitSourceLike, CrossoverMapping, DoubleTrackBlockMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
 
 const cmriStore = useCmriStore()
 
 const showGridLines = false
 const showConnectionStatus = true
 
+//TODO: move this and the markup to a separate component
 const connectionStatusLabel = computed(() => {
   switch (cmriStore.connectionState) {
     case 'connected':
@@ -27,7 +25,7 @@ const connectionStatusLabel = computed(() => {
 })
 
 onMounted(() => {
-  cmriStore.connect()
+  void cmriStore.connect()
 })
 
 onUnmounted(() => {
@@ -36,44 +34,81 @@ onUnmounted(() => {
   })
 })
 
-const blockOneMapping = {
+const blockOneMapping: TrackBlockMapping = {
   occupied: { byte: 2, bit: 3 },
 }
 const blockOneSize = 2
-const blockTwoMapping = {
+const blockTwoMapping: TrackBlockMapping = {
   occupied: { byte: 2, bit: 2 },
 }
 const blockTwoSize = 3
-const crossover1Mapping = {
+const crossover1Mapping: CrossoverMapping = {
   mainOccupied: { byte: 2, bit: 0 },
   crossingOccupied: { byte: 2, bit: 1 },
 }
 const crossoverSize = 3
-const blockThreeMapping = {
+const blockThreeMapping: TrackBlockMapping = {
   occupied: { byte: 1, bit: 2 },
 }
-const blockThreeSize = 3
+const blockThreeSize = 2
 //switch 1
-const turnoutOneMapping = {
-  occupied: [{ byte: 1, bit: 0 },{ byte: 1, bit: 1 }],
+const turnoutOneMapping: TurnoutMapping = {
+  occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
   switchPosition: { byte: 1, bit: 3 },
+  clearLeft: {
+    byte: 0,
+    bit: 0,
+    array: 'derivedIndications',
+  },
+  clearRight: {
+    byte: 0,
+    bit: 1,
+    array: 'derivedIndications',
+  },
 }
 const turnoutOneSize = 3
-const doubleTrackOneMapping = {
+const doubleTrackOneMapping: DoubleTrackBlockMapping = {
   trackOneOccupied: { byte: 0, bit: 1 },
   trackTwoOccupied: { byte: 0, bit: 2 },
 }
 const doubleTrackOneSize = 3
 //switch 2
-const turnoutTwoMapping = {
+const turnoutTwoMapping: TurnoutMapping = {
   occupied: { byte: 0, bit: 0 },
   switchPosition: { byte: 0, bit: 3 },
 }
 const turnoutTwoSize = 3
-const blockFourMapping = {
+const blockFourMapping: TrackBlockMapping = {
   occupied: { byte: 2, bit: 3 },
 }
 const blockFourSize = 2
+
+function getBitSourceValue(source: BitSourceLike | undefined): boolean {
+  if (!source) {
+    return false
+  }
+
+  return cmriStore.getAnyBit(source)
+}
+
+function isTrackBlockOccupied(mapping: TrackBlockMapping): boolean {
+  return getBitSourceValue(mapping.occupied)
+}
+
+const turnoutOneRightClearRouteStates = computed(() => {
+  return resolveClearRoute({
+    isClear: getBitSourceValue(turnoutOneMapping.clearRight),
+    blocks: [
+      { id: 'block-one', occupied: isTrackBlockOccupied(blockOneMapping) },
+      { id: 'block-two', occupied: isTrackBlockOccupied(blockTwoMapping) },
+      { id: 'block-three', occupied: isTrackBlockOccupied(blockThreeMapping) },
+    ],
+  })
+})
+
+function getTrackBlockVisualState(blockId: string): ClearRouteVisualState | undefined {
+  return turnoutOneRightClearRouteStates.value[blockId]
+}
 </script>
 
 <template>
@@ -82,14 +117,28 @@ const blockFourSize = 2
       {{ connectionStatusLabel }}
     </div>
     <div :class="['panel', { 'panel-grid-lines': showGridLines }]">
+      <Turnout :size="turnoutOneSize" direction="right" orientation="up" :mapping="turnoutOneMapping" />
+      <TrackBlock :size="2" :mapping="blockOneMapping" :visual-state="getTrackBlockVisualState('block-one')" />
+      <TrackBlock :size="2" :mapping="blockTwoMapping" :visual-state="getTrackBlockVisualState('block-two')" />
+      <TrackBlock :size="2" :mapping="blockThreeMapping" :visual-state="getTrackBlockVisualState('block-three')" />
+      <Turnout :size="turnoutTwoSize" direction="left" orientation="up" :mapping="turnoutTwoMapping" />
+
+      <!--
       <TrackBlock :size="blockOneSize" :mapping="blockOneMapping" :blockEndLeft="false" />
       <TrackBlock :size="blockTwoSize" :mapping="blockTwoMapping" />
       <Crossover :size="crossoverSize" orientation="left" :mapping="crossover1Mapping" />
       <TrackBlock :size="blockThreeSize" :mapping="blockThreeMapping" />
-      <Turnout :size="turnoutOneSize" direction="right" orientation="down" :mapping="turnoutOneMapping" />
-      <DoubleTrackBlock :size="doubleTrackOneSize" orientation="down" :mapping="doubleTrackOneMapping" />
-      <Turnout :size="turnoutTwoSize" direction="left" orientation="down" :mapping="turnoutTwoMapping" />
+      <Turnout
+        :size="turnoutOneSize"
+        direction="right"
+        orientation="down"
+        :mapping="turnoutOneMapping"
+      />
+      <DoubleTrackBlock :size="doubleTrackOneSize" orientation="up" :mapping="doubleTrackOneMapping" />
+
+      <Turnout :size="turnoutTwoSize" direction="right" orientation="up" :mapping="turnoutTwoMapping" />
       <TrackBlock :size="blockFourSize" :mapping="blockFourMapping" :blockEndRight="false" />
+    -->
     </div>
   </div>
 </template>
@@ -98,7 +147,7 @@ const blockFourSize = 2
 :root {
   --ui-scale: 1.65;
   --grid-unit: 20px;
-  --panel-row-height: 60px;
+  --panel-row-height: 100px;
 }
 
 /* Page */
@@ -153,7 +202,9 @@ body {
 .panel {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(22, var(--grid-unit));
+  grid-template-columns: repeat(15
+      /*21*/
+      , var(--grid-unit));
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
   margin-bottom: 12px;
@@ -176,10 +227,9 @@ body {
   background-size: var(--grid-unit) var(--panel-row-height);
   /* position each background so one appears at the 0px edge and the other at cell-1px */
   background-position: 0 0,
-                       calc(var(--grid-unit) - 1px) 0,
-                       0 0,
-                       0 calc(var(--panel-row-height) - 1px);
+    calc(var(--grid-unit) - 1px) 0,
+    0 0,
+    0 calc(var(--panel-row-height) - 1px);
   background-repeat: repeat;
 }
-
 </style>

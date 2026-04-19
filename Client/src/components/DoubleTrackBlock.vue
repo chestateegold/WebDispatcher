@@ -1,29 +1,27 @@
-<script setup>
-import { computed } from 'vue'
-import { useCmriStore } from '../stores/cmri'
+<script setup lang="ts">
 import styles from './cell.module.css'
 
-const props = defineProps({
-  size: {
-    type: Number,
-    default: 5,
-    validator: (value) => Number.isInteger(value) && value >= 1,
-  },
-  mapping: {
-    type: Object,
-    default: () => ({}),
-  },
-  orientation: {
-    type: String,
-    default: 'up',
-    validator: (v) => ['up', 'down'].includes(v),
-  },
+import { useCmriStore } from '@/stores/cmri'
+import type { DoubleTrackBlockMapping } from '@/types/cmri'
+
+type TrackOrientation = 'up' | 'down'
+
+interface Props {
+  size?: number
+  mapping?: DoubleTrackBlockMapping
+  orientation?: TrackOrientation
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: 5,
+  mapping: () => ({}),
+  orientation: 'up',
 })
 
 const cmriStore = useCmriStore()
 
 const trackOneOccupied = computed(() => {
-  const source = props.mapping?.trackOneOccupied
+  const source = props.mapping.trackOneOccupied
 
   if (!source) {
     return false
@@ -33,7 +31,7 @@ const trackOneOccupied = computed(() => {
 })
 
 const trackTwoOccupied = computed(() => {
-  const source = props.mapping?.trackTwoOccupied
+  const source = props.mapping.trackTwoOccupied
 
   if (!source) {
     return false
@@ -57,14 +55,14 @@ const blockWidth = computed(() => props.size * 20)
 
 const innerTrackEnd = computed(() => Math.max(1, blockWidth.value - 1))
 
-const viewBox = computed(() => `0 0 ${blockWidth.value} 60`)
+const viewBox = computed(() => `0 -20 ${blockWidth.value} 80`)
 
 const layoutStyle = computed(() => ({
   gridColumn: `span ${props.size}`,
 }))
 
 const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,30)' : 'translate(0,10)',
+  props.orientation === 'down' ? 'translate(0,20)' : 'translate(0,0)',
 )
 </script>
 

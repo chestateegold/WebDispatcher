@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Server.Contracts;
 using Server.Services;
 
 namespace Server.Hubs
@@ -18,7 +19,7 @@ namespace Server.Hubs
 
             if (lastSentData is not null)
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", lastSentData);
+                await Clients.Caller.SendAsync("ReceiveMessage", CmriReceiveMessagePayload.FromIndications(lastSentData));
             }
 
             await base.OnConnectedAsync();

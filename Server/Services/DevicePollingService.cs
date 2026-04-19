@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Server.Contracts;
 using Server.Hubs;
 
 namespace Server.Services
@@ -44,11 +45,11 @@ namespace Server.Services
                         if (data is not null && !data.AsSpan().SequenceEqual(_cmriState.GetLastSentData()))
                         {
                             _cmriState.SetLastSentData(data);
+                            var payload = CmriReceiveMessagePayload.FromIndications(data);
 
                             _logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
 
-                            // Send to all connected clients. Use a meaningful signal name and payload shape.
-                            await _hubContext.Clients.All.SendAsync("ReceiveMessage", data, cancellationToken: stoppingToken);
+                            await _hubContext.Clients.All.SendAsync("ReceiveMessage", payload, cancellationToken: stoppingToken);
                         }
                     }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

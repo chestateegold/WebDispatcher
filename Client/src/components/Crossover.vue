@@ -1,23 +1,21 @@
-<script setup>
-import { computed } from 'vue'
-import { useCmriStore } from '../stores/cmri'
+<script setup lang="ts">
 import styles from './cell.module.css'
 
-const props = defineProps({
-  size: {
-    type: Number,
-    default: 3,
-    validator: (value) => Number.isInteger(value) && value >= 1,
-  },
-  orientation: {
-    type: String,
-    default: 'left',
-    validator: (value) => ['left', 'right'].includes(value),
-  },
-  mapping: {
-    type: Object,
-    default: () => ({}),
-  },
+import { useCmriStore } from '@/stores/cmri'
+import type { CrossoverMapping } from '@/types/cmri'
+
+type CrossoverOrientation = 'left' | 'right'
+
+interface Props {
+  size?: number
+  orientation?: CrossoverOrientation
+  mapping?: CrossoverMapping
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: 3,
+  orientation: 'left',
+  mapping: () => ({}),
 })
 
 const cmriStore = useCmriStore()
@@ -29,7 +27,7 @@ const geometryTransform = computed(() =>
 const ariaLabel = computed(() => `${props.orientation} crossover track`)
 
 const mainOccupied = computed(() => {
-  const source = props.mapping?.mainOccupied
+  const source = props.mapping.mainOccupied
 
   if (!source) {
     return false
@@ -39,7 +37,7 @@ const mainOccupied = computed(() => {
 })
 
 const crossingOccupied = computed(() => {
-  const source = props.mapping?.crossingOccupied
+  const source = props.mapping.crossingOccupied
 
   if (!source) {
     return false
@@ -75,8 +73,8 @@ const layoutStyle = computed(() => ({
 
 <template>
   <div :class="[styles.component, styles.layoutItem, 'track']" :style="layoutStyle">
-    <svg :class="styles.svgFill" viewBox="0 0 60 60" :aria-label="ariaLabel">
-      <g transform="translate(0,20)">
+    <svg :class="styles.svgFill" viewBox="0 -20 60 80" :aria-label="ariaLabel">
+      <g transform="translate(0,10)">
         <g :transform="geometryTransform">
         <!-- Main Track -->
         <line x1="0" y1="4" x2="0" y2="16" :class="[styles.blockEnd, styles.rail]" :style="mainTrackStyle" />
