@@ -16,7 +16,7 @@ namespace Server.Services
 
     public class MemoryTransportOptions
     {
-        public byte[] MockInputs { get; set; } = [8, 16, 0];
+        public byte[] MockInputs { get; set; } = [8, 0, 0];
     }
 
     public class TcpTransportOptions

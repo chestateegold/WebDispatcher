@@ -5,7 +5,7 @@ namespace Server.Contracts
         public static CmriReceiveMessagePayload FromIndications(byte[] indications)
         {
             var derivedIndications = new byte[indications.Length];
-            Array.Fill(derivedIndications, (byte)0b00001010);
+            Array.Fill(derivedIndications, (byte)0b00000101);
 
             return new([.. indications], [.. derivedIndications]);
         }

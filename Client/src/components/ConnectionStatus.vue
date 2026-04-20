@@ -33,13 +33,13 @@ const shouldShowStatus = computed(() => cmriStore.connectionState !== 'connected
 
 <style scoped>
 .connection-status {
-  margin: 0 0 8px;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin: 0 0 calc(8px * var(--layout-scale));
+  padding: calc(4px * var(--layout-scale)) calc(10px * var(--layout-scale));
+  border: calc(1px * var(--layout-scale)) solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   background: rgba(17, 17, 17, 0.88);
   color: #cfcfcf;
-  font-size: 11px;
+  font-size: calc(11px * var(--layout-scale));
   letter-spacing: 0.06em;
   text-transform: uppercase;
   width: fit-content;

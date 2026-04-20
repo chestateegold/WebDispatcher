@@ -91,8 +91,6 @@ const trackTwoStyle = computed(() => ({
 
 const blockWidth = computed(() => props.size * 20)
 
-const innerTrackEnd = computed(() => Math.max(1, blockWidth.value - 1))
-
 const viewBox = computed(() => `0 -20 ${blockWidth.value} 80`)
 
 const layoutStyle = computed(() => ({
@@ -100,7 +98,7 @@ const layoutStyle = computed(() => ({
 }))
 
 const orientationTransform = computed(() =>
-  props.orientation === 'down' ? 'translate(0,20)' : 'translate(0,0)',
+  props.orientation === 'down' ? 'translate(0,40) scale(1,-1)' : 'translate(0,0)',
 )
 </script>
 
@@ -109,11 +107,11 @@ const orientationTransform = computed(() =>
     <svg :class="styles.svgFill" :viewBox="viewBox" aria-label="Double track block">
       <g :transform="orientationTransform">
         <line x1="0" y1="-6" x2="0" y2="6" :class="[styles.blockEnd, styles.rail]" :style="trackOneStyle" />
-        <line x1="1" y1="0" :x2="innerTrackEnd" y2="0" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
+        <line x1="0" y1="0" :x2="blockWidth" y2="0" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
         <line :x1="blockWidth" y1="-6" :x2="blockWidth" y2="6" :class="[styles.blockEnd, styles.rail]" :style="trackOneStyle" />
 
         <line x1="0" y1="14" x2="0" y2="26" :class="[styles.blockEnd, styles.rail]" :style="trackTwoStyle" />
-        <line x1="1" y1="20" :x2="innerTrackEnd" y2="20" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" />
+        <line x1="0" y1="20" :x2="blockWidth" y2="20" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" />
         <line :x1="blockWidth" y1="14" :x2="blockWidth" y2="26" :class="[styles.blockEnd, styles.rail]" :style="trackTwoStyle" />
       </g>
     </svg>

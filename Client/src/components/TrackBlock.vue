@@ -56,8 +56,6 @@ const railStyle = computed(() => ({
 
 const blockWidth = computed(() => props.size * 20)
 
-const innerTrackEnd = computed(() => Math.max(1, blockWidth.value - 1))
-
 const viewBox = computed(() => `0 -20 ${blockWidth.value} 80`)
 
 const layoutStyle = computed(() => ({
@@ -69,7 +67,7 @@ const layoutStyle = computed(() => ({
   <div :class="[styles.component, styles.layoutItem, 'track']" :style="layoutStyle">
     <svg :class="styles.svgFill" :viewBox="viewBox" aria-label="Track block">
       <line v-if="blockEndLeft" x1="0" y1="14" x2="0" y2="26" :class="[styles.blockEnd, styles.rail]" :style="railStyle" />
-      <line x1="1" y1="20" :x2="innerTrackEnd" y2="20" :class="[styles.straight, styles.rail]" :style="railStyle" />
+      <line x1="0" y1="20" :x2="blockWidth" y2="20" :class="[styles.straight, styles.rail]" :style="railStyle" />
       <line v-if="blockEndRight" :x1="blockWidth" y1="14" :x2="blockWidth" y2="26" :class="[styles.blockEnd, styles.rail]" :style="railStyle" />
     </svg>
   </div>

@@ -116,9 +116,9 @@ const layoutStyle = computed(() => ({
         <!-- Main Track -->
         <line x1="0" y1="4" x2="0" y2="16" :class="[styles.blockEnd, styles.rail]" :style="mainTrackStyle" />
 
-        <polygon points="1,6 21,6 29,14 1,14" :class="[styles.polyline, styles.rail]" :style="mainTrackStyle" />
+        <polygon points="0,6 21,6 29,14 0,14" :class="[styles.polyline, styles.rail]" :style="mainTrackStyle" />
 
-        <polygon points="31,6 59,6 59,14 39,14" :class="[styles.polyline, styles.rail]" :style="mainTrackStyle" />
+        <polygon points="31,6 60,6 60,14 39,14" :class="[styles.polyline, styles.rail]" :style="mainTrackStyle" />
 
         <line x1="60" y1="4" x2="60" y2="16" :class="[styles.blockEnd, styles.rail]" :style="mainTrackStyle" />
 

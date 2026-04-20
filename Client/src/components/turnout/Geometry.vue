@@ -21,12 +21,12 @@ withDefaults(defineProps<Props>(), {
 <template>
   <g>
     <line x1="0" y1="24" x2="0" y2="36" :class="[styles.blockEnd, styles.rail]" :style="singleTrackStyle" />
-    <line x1="1" y1="30" x2="17" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />
+    <line x1="0" y1="30" x2="17" y2="30" :class="[styles.straight, styles.rail]" :style="singleTrackStyle" />
 
     <line x1="60" y1="24" x2="60" y2="36" :class="[styles.blockEnd, styles.rail]" :style="trackOneStyle" />
-    <line x1="42" y1="30" x2="59" y2="30" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
+    <line x1="42" y1="30" x2="60" y2="30" :class="[styles.straight, styles.rail]" :style="trackOneStyle" />
 
-    <polyline points="39,18 47,10 59,10" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" />
+    <polyline points="39,18 47,10 60,10" :class="[styles.straight, styles.rail]" :style="trackTwoStyle" />
     <line x1="60" y1="4" x2="60" y2="16" :class="[styles.blockEnd, styles.rail]" :style="trackTwoStyle" />
 
     <line x1="17" y1="30" x2="42" y2="30" :class="[styles.straight, styles.rail, 'switch-border']" :style="{ opacity: thrown ? 0 : 1 }" />

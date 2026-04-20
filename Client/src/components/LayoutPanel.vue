@@ -107,7 +107,7 @@ const panelStyle = computed(() => ({
   display: grid;
   grid-auto-rows: var(--panel-row-height);
   gap: 0;
-  margin-bottom: 12px;
+  margin-bottom: calc(12px * var(--layout-scale));
   width: fit-content;
 }
 

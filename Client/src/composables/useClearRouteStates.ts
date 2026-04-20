@@ -148,13 +148,21 @@ function getTurnoutRouteTrack(
   direction: 'left' | 'right',
   getBitSourceValue: (source: BitSourceLike | undefined) => boolean,
 ): DoubleTrackRouteTrack | undefined {
-  const doubleTrackSide = item.direction === 'left' ? 'right' : 'left'
+  const doubleTrackSide = getTurnoutDoubleTrackSide(item)
 
   if (direction !== doubleTrackSide) {
     return undefined
   }
 
   return isTurnoutSwitchReversed(item.mapping, getBitSourceValue) ? 'trackOne' : 'trackTwo'
+}
+
+function getTurnoutDoubleTrackSide(item: TurnoutLayoutItem): 'left' | 'right' {
+  if (item.orientation === 'down') {
+    return item.direction
+  }
+
+  return item.direction === 'left' ? 'right' : 'left'
 }
 
 function isTurnoutSwitchReversed(

@@ -7,6 +7,7 @@ export const currentLayout: LayoutDefinition = {
       id: 'double-track-west',
       kind: 'double-track',
       size: 2,
+      orientation: 'down',
       mapping: {
         trackOneOccupied: { byte: 1, bit: 4 },
         trackTwoOccupied: { byte: 1, bit: 5 },
@@ -16,8 +17,8 @@ export const currentLayout: LayoutDefinition = {
       id: 'turnout-one',
       kind: 'turnout',
       size: 3,
-      direction: 'right',
-      orientation: 'up',
+      direction: 'left',
+      orientation: 'down',
       mapping: {
         occupied: [{ byte: 1, bit: 0 }, { byte: 1, bit: 1 }],
         switchPosition: { byte: 1, bit: 3 },
@@ -74,8 +75,8 @@ export const currentLayout: LayoutDefinition = {
       id: 'turnout-two',
       kind: 'turnout',
       size: 3,
-      direction: 'left',
-      orientation: 'up',
+      direction: 'right',
+      orientation: 'down',
       mapping: {
         occupied: { byte: 0, bit: 0 },
         switchPosition: { byte: 0, bit: 3 },
@@ -98,6 +99,7 @@ export const currentLayout: LayoutDefinition = {
       id: 'double-track-east',
       kind: 'double-track',
       size: 2,
+      orientation: 'down',
       mapping: {
         trackOneOccupied: { byte: 2, bit: 4 },
         trackTwoOccupied: { byte: 2, bit: 5 },

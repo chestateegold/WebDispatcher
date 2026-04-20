@@ -25,9 +25,9 @@ onUnmounted(() => {
 
 <style>
 :root {
-  --ui-scale: 1.65;
-  --grid-unit: 20px;
-  --panel-row-height: 100px;
+  --layout-scale: 1.65;
+  --grid-unit: calc(20px * var(--layout-scale));
+  --panel-row-height: calc(100px * var(--layout-scale));
 }
 
 /* Page */
@@ -45,10 +45,8 @@ body {
 
 /* Outer container sizes to content, not screen */
 .container {
-  padding: 12px;
-  border-radius: 10px;
+  padding: calc(12px * var(--layout-scale));
+  border-radius: calc(10px * var(--layout-scale));
   width: fit-content;
-  transform: scale(var(--ui-scale));
-  transform-origin: center;
 }
 </style>
