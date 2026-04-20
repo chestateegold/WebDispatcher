@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import styles from './cell.module.css'
 
+import { clearColor, occupiedColor, idleColor } from '@/components/constants'
+import type { ClearRouteVisualState } from '@/clearRoute'
 import { useCmriStore } from '@/stores/cmri'
 import type { CrossoverMapping } from '@/types/cmri'
 
@@ -10,15 +12,29 @@ interface Props {
   size?: number
   orientation?: CrossoverOrientation
   mapping?: CrossoverMapping
+  visualState?: ClearRouteVisualState | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 3,
   orientation: 'left',
   mapping: () => ({}),
+  visualState: null,
 })
 
 const cmriStore = useCmriStore()
+
+function getRailColor(state: ClearRouteVisualState): string {
+  if (state === 'occupied') {
+    return occupiedColor
+  }
+
+  if (state === 'clear') {
+    return clearColor
+  }
+
+  return idleColor
+}
 
 const geometryTransform = computed(() =>
   props.orientation === 'right' ? 'translate(100,0) scale(-1,1)' : undefined,
@@ -48,22 +64,43 @@ const crossingOccupied = computed(() => {
 
 const diamondOccupied = computed(() => mainOccupied.value || crossingOccupied.value)
 
-const activeColor = '#d33'
-const idleColor = '#555'
+const resolvedMainVisualState = computed<ClearRouteVisualState>(() => {
+  if (mainOccupied.value || props.visualState === 'occupied') {
+    return 'occupied'
+  }
+
+  if (props.visualState === 'clear') {
+    return 'clear'
+  }
+
+  return 'idle'
+})
+
+const resolvedDiamondVisualState = computed<ClearRouteVisualState>(() => {
+  if (diamondOccupied.value || props.visualState === 'occupied') {
+    return 'occupied'
+  }
+
+  if (props.visualState === 'clear') {
+    return 'clear'
+  }
+
+  return 'idle'
+})
 
 const mainTrackStyle = computed(() => ({
-  '--rail-stroke': mainOccupied.value ? activeColor : idleColor,
-  '--rail-fill': mainOccupied.value ? activeColor : idleColor,
+  '--rail-stroke': getRailColor(resolvedMainVisualState.value),
+  '--rail-fill': getRailColor(resolvedMainVisualState.value),
 }))
 
 const crossingTrackStyle = computed(() => ({
-  '--rail-stroke': crossingOccupied.value ? activeColor : idleColor,
-  '--rail-fill': crossingOccupied.value ? activeColor : idleColor,
+  '--rail-stroke': crossingOccupied.value ? occupiedColor : idleColor,
+  '--rail-fill': crossingOccupied.value ? occupiedColor : idleColor,
 }))
 
 const diamondStyle = computed(() => ({
-  '--rail-stroke': diamondOccupied.value ? activeColor : idleColor,
-  '--rail-fill': diamondOccupied.value ? activeColor : idleColor,
+  '--rail-stroke': getRailColor(resolvedDiamondVisualState.value),
+  '--rail-fill': getRailColor(resolvedDiamondVisualState.value),
 }))
 
 const layoutStyle = computed(() => ({

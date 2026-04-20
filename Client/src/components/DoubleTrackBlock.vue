@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import styles from './cell.module.css'
 
+import { occupiedColor, idleColor } from '@/components/constants'
 import { useCmriStore } from '@/stores/cmri'
 import type { DoubleTrackBlockMapping } from '@/types/cmri'
 
@@ -40,15 +41,12 @@ const trackTwoOccupied = computed(() => {
   return cmriStore.getAnyBit(source)
 })
 
-const activeColor = '#d33'
-const idleColor = '#555'
-
 const trackOneStyle = computed(() => ({
-  '--rail-stroke': trackOneOccupied.value ? activeColor : idleColor,
+  '--rail-stroke': trackOneOccupied.value ? occupiedColor : idleColor,
 }))
 
 const trackTwoStyle = computed(() => ({
-  '--rail-stroke': trackTwoOccupied.value ? activeColor : idleColor,
+  '--rail-stroke': trackTwoOccupied.value ? occupiedColor : idleColor,
 }))
 
 const blockWidth = computed(() => props.size * 20)

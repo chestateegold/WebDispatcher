@@ -1,5 +1,5 @@
 import {
-  isTrackBlockLayoutItem,
+  isClearRouteLayoutItem,
   isTurnoutLayoutItem,
   type ControlPointRouteDirection,
   type LayoutRowItem,
@@ -9,7 +9,7 @@ export type ClearRouteVisualState = 'idle' | 'clear' | 'occupied'
 
 export interface ClearRouteDescriptor {
   row: LayoutRowItem[]
-  occupiedBlocks: Record<string, boolean>
+  occupiedItems: Record<string, boolean>
   routeStates: Record<string, boolean>
 }
 
@@ -17,18 +17,18 @@ export function getClearRouteSourceId(turnoutId: string, direction: ControlPoint
   return `${turnoutId}:${direction}`
 }
 
-function buildInitialBlockStates(
+function buildInitialRouteStates(
   row: LayoutRowItem[],
-  occupiedBlocks: Record<string, boolean>,
+  occupiedItems: Record<string, boolean>,
 ): Record<string, ClearRouteVisualState> {
   const states: Record<string, ClearRouteVisualState> = {}
 
   for (const item of row) {
-    if (!isTrackBlockLayoutItem(item)) {
+    if (!isClearRouteLayoutItem(item)) {
       continue
     }
 
-    states[item.id] = occupiedBlocks[item.id] ? 'occupied' : 'idle'
+    states[item.id] = occupiedItems[item.id] ? 'occupied' : 'idle'
   }
 
   return states
@@ -38,7 +38,7 @@ function applyClearRouteFromSource(
   row: LayoutRowItem[],
   sourceIndex: number,
   direction: ControlPointRouteDirection,
-  occupiedBlocks: Record<string, boolean>,
+  occupiedItems: Record<string, boolean>,
   states: Record<string, ClearRouteVisualState>,
 ): void {
   const step = direction === 'right' ? 1 : -1
@@ -50,11 +50,11 @@ function applyClearRouteFromSource(
       return
     }
 
-    if (!isTrackBlockLayoutItem(item)) {
+    if (!isClearRouteLayoutItem(item)) {
       continue
     }
 
-    if (occupiedBlocks[item.id]) {
+    if (occupiedItems[item.id]) {
       states[item.id] = 'occupied'
       return
     }
@@ -63,8 +63,8 @@ function applyClearRouteFromSource(
   }
 }
 
-export function resolveClearRoute({ row, occupiedBlocks, routeStates }: ClearRouteDescriptor): Record<string, ClearRouteVisualState> {
-  const states = buildInitialBlockStates(row, occupiedBlocks)
+export function resolveClearRoute({ row, occupiedItems, routeStates }: ClearRouteDescriptor): Record<string, ClearRouteVisualState> {
+  const states = buildInitialRouteStates(row, occupiedItems)
 
   for (let index = 0; index < row.length; index += 1) {
     const item = row[index]
@@ -78,7 +78,7 @@ export function resolveClearRoute({ row, occupiedBlocks, routeStates }: ClearRou
         continue
       }
 
-      applyClearRouteFromSource(row, index, source.direction, occupiedBlocks, states)
+      applyClearRouteFromSource(row, index, source.direction, occupiedItems, states)
     }
   }
 

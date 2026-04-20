@@ -1,10 +1,11 @@
 import type { TurnoutDirection, TurnoutOrientation } from '@/components/turnout/types'
-import type { TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
+import type { CrossoverMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
 
 export const defaultLayoutItemSize = 3
 
-export type LayoutRenderKind = 'track-block' | 'turnout'
+export type LayoutRenderKind = 'track-block' | 'turnout' | 'crossover'
 export type ControlPointRouteDirection = 'left' | 'right'
+export type CrossoverOrientation = 'left' | 'right'
 
 interface LayoutRowItemBase {
   id: string
@@ -17,6 +18,12 @@ export interface TrackBlockLayoutItem extends LayoutRowItemBase {
   mapping?: TrackBlockMapping
   blockEndLeft?: boolean
   blockEndRight?: boolean
+}
+
+export interface CrossoverLayoutItem extends LayoutRowItemBase {
+  kind: 'crossover'
+  orientation?: CrossoverOrientation
+  mapping?: CrossoverMapping
 }
 
 export interface TurnoutClearRouteSource {
@@ -35,7 +42,8 @@ export interface TurnoutLayoutItem extends LayoutRowItemBase {
   controlPoint?: TurnoutControlPointMetadata
 }
 
-export type LayoutRowItem = TrackBlockLayoutItem | TurnoutLayoutItem
+export type ClearRouteLayoutItem = TrackBlockLayoutItem | CrossoverLayoutItem
+export type LayoutRowItem = TrackBlockLayoutItem | CrossoverLayoutItem | TurnoutLayoutItem
 
 export interface LayoutDefinition {
   id: string
@@ -48,6 +56,14 @@ export function getLayoutItemSize(item: LayoutRowItem): number {
 
 export function isTrackBlockLayoutItem(item: LayoutRowItem): item is TrackBlockLayoutItem {
   return item.kind === 'track-block'
+}
+
+export function isCrossoverLayoutItem(item: LayoutRowItem): item is CrossoverLayoutItem {
+  return item.kind === 'crossover'
+}
+
+export function isClearRouteLayoutItem(item: LayoutRowItem): item is ClearRouteLayoutItem {
+  return isTrackBlockLayoutItem(item) || isCrossoverLayoutItem(item)
 }
 
 export function isTurnoutLayoutItem(item: LayoutRowItem): item is TurnoutLayoutItem {

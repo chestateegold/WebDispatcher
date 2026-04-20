@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import styles from './cell.module.css'
-import { clearColor, idleColor, occupiedColor } from './turnout/constants'
+import { clearColor, idleColor, occupiedColor } from '@/components/constants'
 
 import type { ClearRouteVisualState } from '@/clearRoute'
 import { useCmriStore } from '@/stores/cmri'

@@ -14,7 +14,4 @@ export const signalLayouts: Record<TurnoutDirection, SignalLayout[]> = {
   ],
 }
 
-//TODO: move these into a constant file more easily accessible by other components
-export const occupiedColor = '#d33'
-export const clearColor = '#00b050'
-export const idleColor = '#555'
+export { clearColor, idleColor, occupiedColor } from '@/components/constants'

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /* Turnout wrapper moved into a folder. */
 import styles from '../cell.module.css'
-import { clearColor, idleColor, occupiedColor, signalLayouts } from './constants'
+import { clearColor, idleColor, occupiedColor } from '@/components/constants'
+import { signalLayouts } from './constants'
 import { getSignalAspect } from './helpers'
 import type { RailColorArgs, RailStyle, SignalFacing, TurnoutProps, TurnoutSignalId } from './types'
 import { useTurnoutMapping } from './useTurnoutMapping'

@@ -11,9 +11,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ConnectionStatus: typeof import('./components/ConnectionStatus.vue')['default']
     Crossover: typeof import('./components/Crossover.vue')['default']
     DoubleTrackBlock: typeof import('./components/DoubleTrackBlock.vue')['default']
     Geometry: typeof import('./components/turnout/Geometry.vue')['default']
+    LayoutPanel: typeof import('./components/LayoutPanel.vue')['default']
     Signal: typeof import('./components/Signal.vue')['default']
     TrackBlock: typeof import('./components/TrackBlock.vue')['default']
     Turnout: typeof import('./components/turnout/index.vue')['default']
