@@ -1,16 +1,35 @@
 import {
   isClearRouteLayoutItem,
+  isDoubleTrackLayoutItem,
   isTurnoutLayoutItem,
   type ControlPointRouteDirection,
   type LayoutRowItem,
 } from '@/layout/schema'
 
 export type ClearRouteVisualState = 'idle' | 'clear' | 'occupied'
+export type DoubleTrackRouteTrack = 'trackOne' | 'trackTwo'
+
+export interface DoubleTrackOccupancyState {
+  trackOne: boolean
+  trackTwo: boolean
+}
+
+export interface DoubleTrackClearRouteVisualState {
+  trackOne: ClearRouteVisualState
+  trackTwo: ClearRouteVisualState
+}
+
+export interface ResolvedClearRouteStates {
+  itemStates: Record<string, ClearRouteVisualState>
+  doubleTrackStates: Record<string, DoubleTrackClearRouteVisualState>
+}
 
 export interface ClearRouteDescriptor {
   row: LayoutRowItem[]
   occupiedItems: Record<string, boolean>
+  occupiedDoubleTrackItems: Record<string, DoubleTrackOccupancyState>
   routeStates: Record<string, boolean>
+  routeTracks: Record<string, DoubleTrackRouteTrack | undefined>
 }
 
 export function getClearRouteSourceId(turnoutId: string, direction: ControlPointRouteDirection): string {
@@ -20,18 +39,34 @@ export function getClearRouteSourceId(turnoutId: string, direction: ControlPoint
 function buildInitialRouteStates(
   row: LayoutRowItem[],
   occupiedItems: Record<string, boolean>,
-): Record<string, ClearRouteVisualState> {
-  const states: Record<string, ClearRouteVisualState> = {}
+  occupiedDoubleTrackItems: Record<string, DoubleTrackOccupancyState>,
+): ResolvedClearRouteStates {
+  const itemStates: Record<string, ClearRouteVisualState> = {}
+  const doubleTrackStates: Record<string, DoubleTrackClearRouteVisualState> = {}
 
   for (const item of row) {
     if (!isClearRouteLayoutItem(item)) {
       continue
     }
 
-    states[item.id] = occupiedItems[item.id] ? 'occupied' : 'idle'
+    if (isDoubleTrackLayoutItem(item)) {
+      const occupiedState = occupiedDoubleTrackItems[item.id]
+
+      doubleTrackStates[item.id] = {
+        trackOne: occupiedState?.trackOne ? 'occupied' : 'idle',
+        trackTwo: occupiedState?.trackTwo ? 'occupied' : 'idle',
+      }
+
+      continue
+    }
+
+    itemStates[item.id] = occupiedItems[item.id] ? 'occupied' : 'idle'
   }
 
-  return states
+  return {
+    itemStates,
+    doubleTrackStates,
+  }
 }
 
 function applyClearRouteFromSource(
@@ -39,9 +74,12 @@ function applyClearRouteFromSource(
   sourceIndex: number,
   direction: ControlPointRouteDirection,
   occupiedItems: Record<string, boolean>,
-  states: Record<string, ClearRouteVisualState>,
+  occupiedDoubleTrackItems: Record<string, DoubleTrackOccupancyState>,
+  routeTrack: DoubleTrackRouteTrack | undefined,
+  states: ResolvedClearRouteStates,
 ): void {
   const step = direction === 'right' ? 1 : -1
+  let activeRouteTrack = routeTrack
 
   for (let index = sourceIndex + step; index >= 0 && index < row.length; index += step) {
     const item = row[index]
@@ -54,17 +92,41 @@ function applyClearRouteFromSource(
       continue
     }
 
+    if (isDoubleTrackLayoutItem(item)) {
+      if (!activeRouteTrack) {
+        continue
+      }
+
+      if (occupiedDoubleTrackItems[item.id]?.[activeRouteTrack]) {
+        states.doubleTrackStates[item.id][activeRouteTrack] = 'occupied'
+        return
+      }
+
+      states.doubleTrackStates[item.id][activeRouteTrack] = 'clear'
+      continue
+    }
+
     if (occupiedItems[item.id]) {
-      states[item.id] = 'occupied'
+      states.itemStates[item.id] = 'occupied'
       return
     }
 
-    states[item.id] = 'clear'
+    states.itemStates[item.id] = 'clear'
+
+    if (activeRouteTrack) {
+      activeRouteTrack = undefined
+    }
   }
 }
 
-export function resolveClearRoute({ row, occupiedItems, routeStates }: ClearRouteDescriptor): Record<string, ClearRouteVisualState> {
-  const states = buildInitialRouteStates(row, occupiedItems)
+export function resolveClearRoute({
+  row,
+  occupiedItems,
+  occupiedDoubleTrackItems,
+  routeStates,
+  routeTracks,
+}: ClearRouteDescriptor): ResolvedClearRouteStates {
+  const states = buildInitialRouteStates(row, occupiedItems, occupiedDoubleTrackItems)
 
   for (let index = 0; index < row.length; index += 1) {
     const item = row[index]
@@ -78,7 +140,15 @@ export function resolveClearRoute({ row, occupiedItems, routeStates }: ClearRout
         continue
       }
 
-      applyClearRouteFromSource(row, index, source.direction, occupiedItems, states)
+      applyClearRouteFromSource(
+        row,
+        index,
+        source.direction,
+        occupiedItems,
+        occupiedDoubleTrackItems,
+        routeTracks[getClearRouteSourceId(item.id, source.direction)],
+        states,
+      )
     }
   }
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import styles from './cell.module.css'
 
-import { occupiedColor, idleColor } from '@/components/constants'
+import { clearColor, occupiedColor, idleColor } from '@/components/constants'
+
+import type { DoubleTrackClearRouteVisualState, ClearRouteVisualState } from '@/clearRoute'
 import { useCmriStore } from '@/stores/cmri'
 import type { DoubleTrackBlockMapping } from '@/types/cmri'
 
@@ -11,15 +13,29 @@ interface Props {
   size?: number
   mapping?: DoubleTrackBlockMapping
   orientation?: TrackOrientation
+  visualState?: DoubleTrackClearRouteVisualState | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 5,
   mapping: () => ({}),
   orientation: 'up',
+  visualState: null,
 })
 
 const cmriStore = useCmriStore()
+
+function getRailColor(state: ClearRouteVisualState): string {
+  if (state === 'occupied') {
+    return occupiedColor
+  }
+
+  if (state === 'clear') {
+    return clearColor
+  }
+
+  return idleColor
+}
 
 const trackOneOccupied = computed(() => {
   const source = props.mapping.trackOneOccupied
@@ -41,12 +57,36 @@ const trackTwoOccupied = computed(() => {
   return cmriStore.getAnyBit(source)
 })
 
+const resolvedTrackOneVisualState = computed<ClearRouteVisualState>(() => {
+  if (trackOneOccupied.value || props.visualState?.trackOne === 'occupied') {
+    return 'occupied'
+  }
+
+  if (props.visualState?.trackOne === 'clear') {
+    return 'clear'
+  }
+
+  return 'idle'
+})
+
+const resolvedTrackTwoVisualState = computed<ClearRouteVisualState>(() => {
+  if (trackTwoOccupied.value || props.visualState?.trackTwo === 'occupied') {
+    return 'occupied'
+  }
+
+  if (props.visualState?.trackTwo === 'clear') {
+    return 'clear'
+  }
+
+  return 'idle'
+})
+
 const trackOneStyle = computed(() => ({
-  '--rail-stroke': trackOneOccupied.value ? occupiedColor : idleColor,
+  '--rail-stroke': getRailColor(resolvedTrackOneVisualState.value),
 }))
 
 const trackTwoStyle = computed(() => ({
-  '--rail-stroke': trackTwoOccupied.value ? occupiedColor : idleColor,
+  '--rail-stroke': getRailColor(resolvedTrackTwoVisualState.value),
 }))
 
 const blockWidth = computed(() => props.size * 20)

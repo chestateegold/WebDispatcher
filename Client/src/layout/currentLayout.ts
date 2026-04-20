@@ -4,6 +4,15 @@ export const currentLayout: LayoutDefinition = {
   id: 'current-single-row',
   row: [
     {
+      id: 'double-track-west',
+      kind: 'double-track',
+      size: 2,
+      mapping: {
+        trackOneOccupied: { byte: 1, bit: 4 },
+        trackTwoOccupied: { byte: 1, bit: 5 },
+      },
+    },
+    {
       id: 'turnout-one',
       kind: 'turnout',
       size: 3,
@@ -23,9 +32,8 @@ export const currentLayout: LayoutDefinition = {
           array: 'derivedIndications',
         },
       },
-      //TODO: this isn't quite right still since routes can be cleared in either direction.
       controlPoint: {
-        clearRouteSources: [{ direction: 'right' }],
+        clearRouteSources: [{ direction: 'left' }, { direction: 'right' }],
       },
     },
     {
@@ -37,6 +45,14 @@ export const currentLayout: LayoutDefinition = {
       },
     },
     {
+      id: 'block-two',
+      kind: 'track-block',
+      size: 2,
+      mapping: {
+        occupied: { byte: 2, bit: 2 },
+      },
+    },
+    {
       id: 'crossover-one',
       kind: 'crossover',
       size: 3,
@@ -44,14 +60,6 @@ export const currentLayout: LayoutDefinition = {
       mapping: {
         mainOccupied: { byte: 2, bit: 0 },
         crossingOccupied: { byte: 2, bit: 1 },
-      },
-    },
-    {
-      id: 'block-two',
-      kind: 'track-block',
-      size: 2,
-      mapping: {
-        occupied: { byte: 2, bit: 2 },
       },
     },
     {
@@ -83,7 +91,16 @@ export const currentLayout: LayoutDefinition = {
         },
       },
       controlPoint: {
-        clearRouteSources: [{ direction: 'left' }],
+        clearRouteSources: [{ direction: 'left' }, { direction: 'right' }],
+      },
+    },
+    {
+      id: 'double-track-east',
+      kind: 'double-track',
+      size: 2,
+      mapping: {
+        trackOneOccupied: { byte: 2, bit: 4 },
+        trackTwoOccupied: { byte: 2, bit: 5 },
       },
     },
   ],

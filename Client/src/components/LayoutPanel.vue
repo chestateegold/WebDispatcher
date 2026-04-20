@@ -2,10 +2,16 @@
 import { computed } from 'vue'
 
 import Crossover from '@/components/Crossover.vue'
+import DoubleTrackBlock from '@/components/DoubleTrackBlock.vue'
 import TrackBlock from '@/components/TrackBlock.vue'
 import Turnout from '@/components/turnout/index.vue'
 import { currentLayout } from '@/layout/currentLayout'
-import { getLayoutItemSize, isCrossoverLayoutItem, isTurnoutLayoutItem } from '@/layout/schema'
+import {
+  getLayoutItemSize,
+  isCrossoverLayoutItem,
+  isDoubleTrackLayoutItem,
+  isTurnoutLayoutItem,
+} from '@/layout/schema'
 import { useCmriStore } from '@/stores/cmri'
 import { useClearRouteStates } from '@/composables/useClearRouteStates'
 
@@ -13,7 +19,7 @@ const cmriStore = useCmriStore()
 const activeLayout = currentLayout
 const showGridLines = false
 
-const { getLayoutItemVisualState } = useClearRouteStates({
+const { getLayoutItemVisualState, getDoubleTrackItemVisualState } = useClearRouteStates({
   row: activeLayout.row,
   getBitSourceValue: (source) => {
     if (!source) {
@@ -48,6 +54,19 @@ const renderedRowItems = computed(() => {
           orientation: item.orientation,
           mapping: item.mapping,
           visualState: getLayoutItemVisualState(item.id),
+        },
+      }
+    }
+
+    if (isDoubleTrackLayoutItem(item)) {
+      return {
+        id: item.id,
+        component: DoubleTrackBlock,
+        props: {
+          size: getLayoutItemSize(item),
+          orientation: item.orientation,
+          mapping: item.mapping,
+          visualState: getDoubleTrackItemVisualState(item.id),
         },
       }
     }

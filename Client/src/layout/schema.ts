@@ -1,11 +1,12 @@
 import type { TurnoutDirection, TurnoutOrientation } from '@/components/turnout/types'
-import type { CrossoverMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
+import type { CrossoverMapping, DoubleTrackBlockMapping, TrackBlockMapping, TurnoutMapping } from '@/types/cmri'
 
 export const defaultLayoutItemSize = 3
 
-export type LayoutRenderKind = 'track-block' | 'turnout' | 'crossover'
+export type LayoutRenderKind = 'track-block' | 'turnout' | 'crossover' | 'double-track'
 export type ControlPointRouteDirection = 'left' | 'right'
 export type CrossoverOrientation = 'left' | 'right'
+export type DoubleTrackOrientation = 'up' | 'down'
 
 interface LayoutRowItemBase {
   id: string
@@ -26,6 +27,12 @@ export interface CrossoverLayoutItem extends LayoutRowItemBase {
   mapping?: CrossoverMapping
 }
 
+export interface DoubleTrackLayoutItem extends LayoutRowItemBase {
+  kind: 'double-track'
+  orientation?: DoubleTrackOrientation
+  mapping?: DoubleTrackBlockMapping
+}
+
 export interface TurnoutClearRouteSource {
   direction: ControlPointRouteDirection
 }
@@ -42,8 +49,8 @@ export interface TurnoutLayoutItem extends LayoutRowItemBase {
   controlPoint?: TurnoutControlPointMetadata
 }
 
-export type ClearRouteLayoutItem = TrackBlockLayoutItem | CrossoverLayoutItem
-export type LayoutRowItem = TrackBlockLayoutItem | CrossoverLayoutItem | TurnoutLayoutItem
+export type ClearRouteLayoutItem = TrackBlockLayoutItem | CrossoverLayoutItem | DoubleTrackLayoutItem
+export type LayoutRowItem = TrackBlockLayoutItem | CrossoverLayoutItem | DoubleTrackLayoutItem | TurnoutLayoutItem
 
 export interface LayoutDefinition {
   id: string
@@ -62,8 +69,12 @@ export function isCrossoverLayoutItem(item: LayoutRowItem): item is CrossoverLay
   return item.kind === 'crossover'
 }
 
+export function isDoubleTrackLayoutItem(item: LayoutRowItem): item is DoubleTrackLayoutItem {
+  return item.kind === 'double-track'
+}
+
 export function isClearRouteLayoutItem(item: LayoutRowItem): item is ClearRouteLayoutItem {
-  return isTrackBlockLayoutItem(item) || isCrossoverLayoutItem(item)
+  return isTrackBlockLayoutItem(item) || isCrossoverLayoutItem(item) || isDoubleTrackLayoutItem(item)
 }
 
 export function isTurnoutLayoutItem(item: LayoutRowItem): item is TurnoutLayoutItem {
