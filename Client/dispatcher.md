@@ -144,6 +144,73 @@ gap: 1–2px;
   - TurnoutPositionChanged
   - LogMessage
 
+## Control Message Contract (Phase One)
+
+The frontend now sends structured control payloads to the existing SignalR hub without treating the send as an authoritative state change.
+
+### Shared Envelope
+
+- `messageId: string`
+- `layoutId: string`
+- `layoutItemId: string`
+- `controlType: 'signal' | 'turnout'`
+- `sentAt: string`
+
+### Signal Request / Cancel
+
+```ts
+interface SignalControlMessage {
+  messageId: string
+  layoutId: string
+  layoutItemId: string
+  controlType: 'signal'
+  action: 'request' | 'cancel'
+  target: {
+    signalId: string
+    direction: 'left' | 'right'
+  }
+  metadata: {
+    controlPointId: string
+  }
+  sentAt: string
+}
+```
+
+### Turnout Toggle
+
+```ts
+interface TurnoutToggleMessage {
+  messageId: string
+  layoutId: string
+  layoutItemId: string
+  controlType: 'turnout'
+  action: 'toggle'
+  target: {
+    turnoutId: string
+    selectedSignalId: string
+  }
+  metadata: {
+    controlPointId: string
+  }
+  sentAt: string
+}
+```
+
+## Click-To-Control Flow
+
+- `Client/src/layout/schema.ts` defines turnout `controlPoint` metadata, including the required `controlPoint.id` and supported clear-route directions.
+- `Client/src/layout/currentLayout.ts` binds each rendered turnout item to a concrete control point id.
+- `Client/src/components/LayoutPanel.vue` is the single translation layer from UI clicks to outbound hub messages.
+- Clicking a non-aligned double-track turnout signal sends `turnout/toggle` with the clicked signal id as `target.selectedSignalId`.
+- Clicking the aligned turnout signal, or the single-track side signal, sends `signal/request` or `signal/cancel`.
+- The frontend keeps only transient pending intent; the backend indication remains the authoritative confirmation path.
+
+## Backend Acceptance Scope
+
+- `Client/src/stores/cmri.ts` sends the control payload through the existing `/cmriHub` connection.
+- `Server/Hubs/CmriHub.cs` accepts the payload and validates its shape.
+- The backend remains passive in this slice: no device control, no rebroadcast changes, and no polling changes.
+
 ---
 
 ## Why a Browser UI

@@ -34,6 +34,7 @@ export const currentLayout: LayoutDefinition = {
         },
       },
       controlPoint: {
+        id: 'turnout-one',
         clearRouteSources: [{ direction: 'left' }, { direction: 'right' }],
       },
     },
@@ -92,6 +93,7 @@ export const currentLayout: LayoutDefinition = {
         },
       },
       controlPoint: {
+        id: 'turnout-two',
         clearRouteSources: [{ direction: 'left' }, { direction: 'right' }],
       },
     },

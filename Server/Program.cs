@@ -18,8 +18,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add SignalR
-builder.Services.AddSignalR();
+// Add SignalR with case-insensitive JSON for payloads
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 builder.Services.Configure<CmriOptions>(builder.Configuration.GetSection("Cmri"));
 

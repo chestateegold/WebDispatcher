@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr'
 
+import type { FrontendControlMessage } from '@/types/control'
 import type { BitSource, BitSourceLike, ConnectionState, FrameEnvelope, FrameName } from '@/types/cmri'
 
 const FRAME_SIZE = 3
@@ -200,6 +201,22 @@ export const useCmriStore = defineStore('cmri', () => {
     connectionState.value = 'disconnected'
   }
 
+  async function sendControlMessage(message: FrontendControlMessage): Promise<void> {
+    if (connection.state !== HubConnectionState.Connected) {
+      await startConnection()
+    }
+
+    try {
+      console.info('[cmri] invoking SendControlMessage', message)
+      await connection.invoke('SendControlMessage', message)
+      console.info('[cmri] SendControlMessage completed', { messageId: message.messageId })
+    }
+    catch (err) {
+      console.error('[cmri] SendControlMessage failed', err)
+      throw err
+    }
+  }
+
   function getFrame(frameName: FrameName = 'indications'): number[] {
     return frameName === 'derivedIndications' ? derivedIndications.value : indications.value
   }
@@ -227,6 +244,7 @@ export const useCmriStore = defineStore('cmri', () => {
     connectionState,
     connect,
     disconnect,
+    sendControlMessage,
     setFrame,
     getBit,
     getAnyBit,
