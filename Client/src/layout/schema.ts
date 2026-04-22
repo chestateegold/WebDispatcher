@@ -38,6 +38,7 @@ export interface TurnoutClearRouteSource {
 }
 
 export interface TurnoutControlPointMetadata {
+  id: string
   clearRouteSources?: TurnoutClearRouteSource[]
 }
 

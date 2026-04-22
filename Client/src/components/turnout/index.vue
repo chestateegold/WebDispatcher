@@ -13,9 +13,18 @@ const props = withDefaults(defineProps<TurnoutProps>(), {
   orientation: 'up',
   mapping: () => ({}),
   activeSignalId: null,
+  signalVisualStates: () => ({}),
+  showHitboxOutlines: false,
+  controlsLocked: false,
+  switchPending: false,
+  switchInteractive: true,
+  switchThrown: undefined,
 })
 
-const emit = defineEmits<{ 'signal-clicked': [signalId: TurnoutSignalId] }>()
+const emit = defineEmits<{
+  'signal-clicked': [signalId: TurnoutSignalId]
+  'switch-clicked': []
+}>()
 
 // Store / mapping
 const {
@@ -57,6 +66,11 @@ const signalPositions = computed(() => {
 const ariaLabel = computed(() => `${props.orientation} ${effectiveDirection.value} turnout switch`)
 const hasActiveClearRoute = computed(() => isClearLeftActive.value || isClearRightActive.value)
 const alignedSignalId = computed<TurnoutSignalId>(() => (isSwitchNormal.value ? 'track-one' : 'track-two'))
+const renderedSwitchThrown = computed(() => props.switchThrown ?? isSwitchReversed.value)
+
+function isPendingSignalState(state: unknown): state is 'request-pending' | 'cancel-pending' {
+  return state === 'request-pending' || state === 'cancel-pending'
+}
 
 // Color logic
 function railColor({ occupied, switchState, clearActive }: RailColorArgs): string {
@@ -130,6 +144,18 @@ function getSignalAspectForId(signalId: TurnoutSignalId) {
   })
 }
 
+function getSignalVisualState(signalId: TurnoutSignalId) {
+  return props.signalVisualStates[signalId] ?? 'idle'
+}
+
+function isSignalInteractive(signalId: TurnoutSignalId): boolean {
+  if (!props.controlsLocked) {
+    return true
+  }
+
+  return isPendingSignalState(getSignalVisualState(signalId))
+}
+
 function isTurnoutSignalId(signalId: string): signalId is TurnoutSignalId {
   return signalId === 'single-track' || signalId === 'track-one' || signalId === 'track-two'
 }
@@ -141,6 +167,10 @@ function onSignalClicked(signalId: string) {
 
   emit('signal-clicked', signalId)
 }
+
+function onSwitchClicked() {
+  emit('switch-clicked')
+}
 </script>
 
 <template>
@@ -151,10 +181,15 @@ function onSignalClicked(signalId: string) {
         <Signal v-for="signal in signalPositions" :id="signal.id" :key="signal.id" :x="signal.x" :y="signal.y"
           :label="signal.label" :aspect="getSignalAspectForId(signal.id)"
           :facing="getRenderedFacing(signal.facing ?? 'right')" :hit-width="signal.hitWidth ?? 16" :hit-height="signal.hitHeight ?? 16"
+          :visual-state="getSignalVisualState(signal.id)"
+          :show-hitbox-outlines="props.showHitboxOutlines"
+          :interactive="isSignalInteractive(signal.id)"
           @activate="onSignalClicked" />
 
-        <Geometry :thrown="isSwitchReversed" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
-          :track-two-style="trackTwoStyle" />
+        <Geometry :thrown="renderedSwitchThrown" :single-track-style="singleTrackStyle" :track-one-style="trackOneStyle"
+          :track-two-style="trackTwoStyle" :pending="props.switchPending" :interactive="props.switchInteractive && (!props.controlsLocked || props.switchPending)"
+          :show-hitbox-outlines="props.showHitboxOutlines"
+          @activate="onSwitchClicked" />
       </g>
     </svg>
   </div>

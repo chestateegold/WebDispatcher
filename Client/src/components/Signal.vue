@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SignalControlVisualState } from '@/types/control'
+
 type SignalAspect = 'red' | 'green'
 type SignalFacing = 'left' | 'right' | 'up' | 'down'
 
@@ -12,6 +14,8 @@ interface Props {
   interactive?: boolean
   hitWidth?: number
   hitHeight?: number
+  visualState?: SignalControlVisualState
+  showHitboxOutlines?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +25,8 @@ const props = withDefaults(defineProps<Props>(), {
   interactive: true,
   hitWidth: 16,
   hitHeight: 16,
+  visualState: 'idle',
+  showHitboxOutlines: false,
 })
 
 const emit = defineEmits<{ activate: [id: string] }>()
@@ -43,6 +49,7 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 const lampClass = computed(() => `signal-lamp-${props.aspect}`)
+const isRequestPending = computed(() => props.visualState === 'request-pending')
 
 const facingTransform = computed<string | undefined>(() => {
   switch (props.facing) {
@@ -61,7 +68,14 @@ const facingTransform = computed<string | undefined>(() => {
 <template>
   <g
     :transform="`translate(${props.x}, ${props.y})`"
-    :class="['signal', `signal-${props.aspect}`, { 'signal-interactive': props.interactive }]"
+    :class="[
+      'signal',
+      `signal-${props.aspect}`,
+      {
+        'signal-interactive': props.interactive,
+        'signal-pending': isRequestPending,
+      },
+    ]"
     :aria-label="props.label"
     :tabindex="props.interactive ? 0 : undefined"
     role="button"
@@ -73,7 +87,7 @@ const facingTransform = computed<string | undefined>(() => {
       :y="-props.hitHeight / 2"
       :width="props.hitWidth"
       :height="props.hitHeight"
-      class="signal-hitbox"
+      :class="['signal-hitbox', { 'signal-hitbox-outline': props.showHitboxOutlines }]"
       rx="2"
       ry="2"
     />
@@ -88,6 +102,7 @@ const facingTransform = computed<string | undefined>(() => {
 <style scoped>
 .signal {
   color: #d33;
+  outline: none;
 }
 
 .signal-interactive {
@@ -107,6 +122,11 @@ const facingTransform = computed<string | undefined>(() => {
   stroke: none;
 }
 
+.signal-hitbox-outline {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1;
+}
+
 .signal-head {
   fill: #101010;
   stroke: none;
@@ -120,6 +140,36 @@ const facingTransform = computed<string | undefined>(() => {
 }
 
 .signal-lamp-red {
+  fill: currentColor;
+}
+
+.signal-lamp-green {
+  fill: currentColor;
+}
+
+.signal-pending .signal-lamp {
+  fill: #2fbf71;
+  animation: signal-pending-blink 1.5s step-end infinite;
+}
+
+.signal:focus,
+.signal:focus-visible {
+  outline: none;
+}
+
+@keyframes signal-pending-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.signal-lamp-red {
   fill: #d33;
 }
 
@@ -127,8 +177,4 @@ const facingTransform = computed<string | undefined>(() => {
   fill: #2fbf71;
 }
 
-.signal:focus-visible .signal-hitbox {
-  stroke: rgba(255, 255, 255, 0.65);
-  stroke-width: 1;
-}
 </style>

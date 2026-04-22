@@ -1,23 +1,50 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 
 import Crossover from '@/components/Crossover.vue'
 import DoubleTrackBlock from '@/components/DoubleTrackBlock.vue'
 import TrackBlock from '@/components/TrackBlock.vue'
+import { getSignalAspect } from '@/components/turnout/helpers'
 import Turnout from '@/components/turnout/index.vue'
+import type { TurnoutSignalId } from '@/components/turnout/types'
+import {
+  buildSignalControlMessage,
+  buildTurnoutCancelMessage,
+  buildTurnoutToggleMessage,
+  getAlignedTurnoutSignalId,
+  getRouteDirectionForTurnoutSignal,
+  isTurnoutSignalId,
+  turnoutSignalIds,
+} from '@/control/messages'
 import { currentLayout } from '@/layout/currentLayout'
 import {
   getLayoutItemSize,
   isCrossoverLayoutItem,
   isDoubleTrackLayoutItem,
   isTurnoutLayoutItem,
+  type TurnoutLayoutItem,
 } from '@/layout/schema'
+import type { SignalControlVisualState } from '@/types/control'
 import { useCmriStore } from '@/stores/cmri'
 import { useClearRouteStates } from '@/composables/useClearRouteStates'
 
 const cmriStore = useCmriStore()
 const activeLayout = currentLayout
 const showGridLines = false
+const showHitboxOutlines = false
+const signalPendingStates = ref<Record<string, Extract<SignalControlVisualState, 'request-pending' | 'cancel-pending'>>>({})
+
+interface TurnoutPendingState {
+  requestedAlignedSignalId: TurnoutSignalId
+}
+
+const turnoutPendingStates = ref<Partial<Record<string, TurnoutPendingState>>>({})
+
+const turnoutItemsById = new Map(
+  activeLayout.row
+    .filter(isTurnoutLayoutItem)
+    .map((item) => [item.id, item] as const),
+)
 
 const { getLayoutItemVisualState, getDoubleTrackItemVisualState } = useClearRouteStates({
   row: activeLayout.row,
@@ -33,6 +60,8 @@ const { getLayoutItemVisualState, getDoubleTrackItemVisualState } = useClearRout
 const renderedRowItems = computed(() => {
   return activeLayout.row.map((item) => {
     if (isTurnoutLayoutItem(item)) {
+      const controlsLocked = hasPendingControlForTurnout(item.id)
+
       return {
         id: item.id,
         component: Turnout,
@@ -41,6 +70,22 @@ const renderedRowItems = computed(() => {
           direction: item.direction,
           orientation: item.orientation,
           mapping: item.mapping,
+          signalVisualStates: {
+            'single-track': getTurnoutSignalControlState(item, 'single-track'),
+            'track-one': getTurnoutSignalControlState(item, 'track-one'),
+            'track-two': getTurnoutSignalControlState(item, 'track-two'),
+          },
+          showHitboxOutlines,
+          controlsLocked,
+          switchPending: isTurnoutTogglePending(item.id),
+          switchInteractive: !controlsLocked || isTurnoutTogglePending(item.id),
+          switchThrown: getDisplayedTurnoutSwitchThrown(item),
+          onSignalClicked: (signalId: TurnoutSignalId) => {
+            void handleTurnoutSignalClicked(item.id, signalId)
+          },
+          onSwitchClicked: () => {
+            void handleTurnoutSwitchClicked(item.id)
+          },
         },
       }
     }
@@ -88,6 +133,266 @@ const renderedRowItems = computed(() => {
 const panelStyle = computed(() => ({
   gridTemplateColumns: `repeat(${activeLayout.row.reduce((total, item) => total + getLayoutItemSize(item), 0)}, var(--grid-unit))`,
 }))
+
+watchEffect(() => {
+  const nextPendingStates = { ...signalPendingStates.value }
+  let changed = false
+
+  for (const [stateKey, pendingState] of Object.entries(nextPendingStates)) {
+    const separatorIndex = stateKey.indexOf(':')
+
+    if (separatorIndex < 0) {
+      delete nextPendingStates[stateKey]
+      changed = true
+      continue
+    }
+
+    const layoutItemId = stateKey.slice(0, separatorIndex)
+    const signalId = stateKey.slice(separatorIndex + 1)
+    const item = turnoutItemsById.get(layoutItemId)
+
+    if (!item || !isTurnoutSignalId(signalId)) {
+      delete nextPendingStates[stateKey]
+      changed = true
+      continue
+    }
+
+    const isActive = isTurnoutSignalIndicatedActive(item, signalId)
+
+    if ((pendingState === 'request-pending' && isActive) || (pendingState === 'cancel-pending' && !isActive)) {
+      delete nextPendingStates[stateKey]
+      changed = true
+    }
+  }
+
+  if (changed) {
+    signalPendingStates.value = nextPendingStates
+  }
+})
+
+watchEffect(() => {
+  const nextPendingStates = { ...turnoutPendingStates.value }
+  let changed = false
+
+  for (const layoutItemId of Object.keys(nextPendingStates)) {
+    const item = turnoutItemsById.get(layoutItemId)
+
+    if (!item) {
+      delete nextPendingStates[layoutItemId]
+      changed = true
+      continue
+    }
+
+    if (!isTurnoutTogglePendingResolved(item)) {
+      continue
+    }
+
+    delete nextPendingStates[layoutItemId]
+    changed = true
+  }
+
+  if (changed) {
+    turnoutPendingStates.value = nextPendingStates
+  }
+})
+
+function getSignalStateKey(layoutItemId: string, signalId: TurnoutSignalId): string {
+  return `${layoutItemId}:${signalId}`
+}
+
+function isTurnoutSwitchNormal(item: TurnoutLayoutItem): boolean {
+  const switchPositionSource = item.mapping?.switchPosition
+
+  if (!switchPositionSource) {
+    return true
+  }
+
+  return cmriStore.getBit(switchPositionSource.byte, switchPositionSource.bit, switchPositionSource.array)
+}
+
+function isTurnoutTogglePending(layoutItemId: string): boolean {
+  return turnoutPendingStates.value[layoutItemId] !== undefined
+}
+
+function isTurnoutSignalPending(layoutItemId: string, signalId: TurnoutSignalId): boolean {
+  return signalPendingStates.value[getSignalStateKey(layoutItemId, signalId)] !== undefined
+}
+
+function hasPendingControlForTurnout(layoutItemId: string): boolean {
+  if (isTurnoutTogglePending(layoutItemId)) {
+    return true
+  }
+
+  return Object.keys(signalPendingStates.value).some((key) => key.startsWith(`${layoutItemId}:`))
+}
+
+function isTurnoutTogglePendingResolved(item: TurnoutLayoutItem): boolean {
+  const pendingState = turnoutPendingStates.value[item.id]
+
+  if (!pendingState) {
+    return false
+  }
+
+  return getAlignedTurnoutSignalId(isTurnoutSwitchNormal(item)) === pendingState.requestedAlignedSignalId
+}
+
+function getDisplayedTurnoutSwitchThrown(item: TurnoutLayoutItem): boolean {
+  const pendingState = turnoutPendingStates.value[item.id]
+
+  if (!pendingState) {
+    return !isTurnoutSwitchNormal(item)
+  }
+
+  return pendingState.requestedAlignedSignalId === 'track-two'
+}
+
+function getTurnoutToggleTargetSignalId(item: TurnoutLayoutItem): TurnoutSignalId {
+  return getAlignedTurnoutSignalId(!isTurnoutSwitchNormal(item))
+}
+
+function isTurnoutSignalIndicatedActive(item: TurnoutLayoutItem, signalId: TurnoutSignalId): boolean {
+  return getSignalAspect({
+    signalId,
+    hasClearRouteSources: (item.controlPoint?.clearRouteSources?.length ?? 0) > 0,
+    isClearLeftActive: cmriStore.getAnyBit(item.mapping?.clearLeft),
+    isClearRightActive: cmriStore.getAnyBit(item.mapping?.clearRight),
+    direction: item.direction,
+    orientation: item.orientation,
+    alignedSignalId: getAlignedTurnoutSignalId(isTurnoutSwitchNormal(item)),
+    activeSignalId: null,
+  }) === 'green'
+}
+
+function getTurnoutSignalControlState(item: TurnoutLayoutItem, signalId: TurnoutSignalId): SignalControlVisualState {
+  const pendingState = signalPendingStates.value[getSignalStateKey(item.id, signalId)]
+  const isIndicatedActive = isTurnoutSignalIndicatedActive(item, signalId)
+
+  if (pendingState === 'request-pending' && isIndicatedActive) {
+    return 'active'
+  }
+
+  if (pendingState === 'cancel-pending' && !isIndicatedActive) {
+    return 'idle'
+  }
+
+  if (pendingState) {
+    return pendingState
+  }
+
+  return isIndicatedActive ? 'active' : 'idle'
+}
+
+async function handleTurnoutSignalClicked(layoutItemId: string, signalId: TurnoutSignalId): Promise<void> {
+  const item = turnoutItemsById.get(layoutItemId)
+  const controlPointId = item?.controlPoint?.id
+
+  if (!item || !controlPointId) {
+    return
+  }
+
+  if (hasPendingControlForTurnout(item.id) && !isTurnoutSignalPending(item.id, signalId)) {
+    return
+  }
+
+  const currentState = getTurnoutSignalControlState(item, signalId)
+
+  if (currentState === 'cancel-pending') {
+    return
+  }
+
+  const nextAction = currentState === 'request-pending' || currentState === 'active' ? 'cancel' : 'request'
+  const nextPendingState = nextAction === 'cancel' ? 'cancel-pending' : 'request-pending'
+  const stateKey = getSignalStateKey(item.id, signalId)
+
+  try {
+    await cmriStore.sendControlMessage(buildSignalControlMessage({
+      layoutId: activeLayout.id,
+      layoutItemId: item.id,
+      controlPointId,
+      action: nextAction,
+      signalId,
+      direction: getRouteDirectionForTurnoutSignal({
+        signalId,
+        direction: item.direction,
+        orientation: item.orientation,
+      }),
+    }))
+
+    signalPendingStates.value = {
+      ...signalPendingStates.value,
+      [stateKey]: nextPendingState,
+    }
+  }
+  catch (error) {
+    console.error('Failed to send signal control message.', error)
+  }
+}
+
+async function handleTurnoutSwitchClicked(layoutItemId: string): Promise<void> {
+  const item = turnoutItemsById.get(layoutItemId)
+  const controlPointId = item?.controlPoint?.id
+
+  if (!item || !controlPointId) {
+    return
+  }
+
+  const pendingState = turnoutPendingStates.value[item.id]
+
+  if (hasPendingControlForTurnout(item.id) && !pendingState) {
+    return
+  }
+
+  if (pendingState) {
+    try {
+      await cmriStore.sendControlMessage(buildTurnoutCancelMessage({
+        layoutId: activeLayout.id,
+        layoutItemId: item.id,
+        turnoutId: item.id,
+        selectedSignalId: pendingState.requestedAlignedSignalId,
+        controlPointId,
+      }))
+
+      const nextPendingStates = { ...turnoutPendingStates.value }
+      delete nextPendingStates[item.id]
+      turnoutPendingStates.value = nextPendingStates
+    }
+    catch (error) {
+      console.error('Failed to send turnout cancel control message.', error)
+    }
+
+    return
+  }
+
+  await sendTurnoutToggleControl(item, getTurnoutToggleTargetSignalId(item))
+}
+
+async function sendTurnoutToggleControl(item: TurnoutLayoutItem, selectedSignalId: TurnoutSignalId): Promise<void> {
+  const controlPointId = item.controlPoint?.id
+
+  if (!controlPointId || isTurnoutTogglePending(item.id)) {
+    return
+  }
+
+  try {
+    await cmriStore.sendControlMessage(buildTurnoutToggleMessage({
+      layoutId: activeLayout.id,
+      layoutItemId: item.id,
+      turnoutId: item.id,
+      selectedSignalId,
+      controlPointId,
+    }))
+
+    turnoutPendingStates.value = {
+      ...turnoutPendingStates.value,
+      [item.id]: {
+        requestedAlignedSignalId: selectedSignalId,
+      },
+    }
+  }
+  catch (error) {
+    console.error('Failed to send turnout toggle control message.', error)
+  }
+}
 </script>
 
 <template>
