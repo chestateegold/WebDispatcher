@@ -1,6 +1,6 @@
 import type { TurnoutDirection, TurnoutOrientation, TurnoutSignalId } from '@/components/turnout/types'
 import type { ControlPointRouteDirection } from '@/layout/schema'
-import type { FrontendControlMessageBase, SignalControlAction, SignalControlMessage, TurnoutToggleMessage } from '@/types/control'
+import type { FrontendControlMessageBase, SignalControlAction, SignalControlMessage, TurnoutCancelMessage, TurnoutToggleMessage } from '@/types/control'
 
 const turnoutSignalIdList = ['single-track', 'track-one', 'track-two'] as const satisfies readonly TurnoutSignalId[]
 
@@ -17,6 +17,11 @@ interface SignalMessageArgs extends ControlMessageContext {
 }
 
 interface TurnoutToggleMessageArgs extends ControlMessageContext {
+  turnoutId: string
+  selectedSignalId: string
+}
+
+interface TurnoutCancelMessageArgs extends ControlMessageContext {
   turnoutId: string
   selectedSignalId: string
 }
@@ -94,6 +99,20 @@ export function buildTurnoutToggleMessage(args: TurnoutToggleMessageArgs): Turno
   return {
     ...createMessageBase(args, 'turnout'),
     action: 'toggle',
+    target: {
+      turnoutId: args.turnoutId,
+      selectedSignalId: args.selectedSignalId,
+    },
+    metadata: {
+      controlPointId: args.controlPointId,
+    },
+  }
+}
+
+export function buildTurnoutCancelMessage(args: TurnoutCancelMessageArgs): TurnoutCancelMessage {
+  return {
+    ...createMessageBase(args, 'turnout'),
+    action: 'cancel',
     target: {
       turnoutId: args.turnoutId,
       selectedSignalId: args.selectedSignalId,

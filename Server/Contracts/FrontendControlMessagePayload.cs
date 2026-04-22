@@ -111,9 +111,9 @@ namespace Server.Contracts
         {
             ValidateBase();
 
-            if (Action != "toggle")
+            if (Action != "toggle" && Action != "cancel")
             {
-                throw new ArgumentException("turnout action must be toggle.");
+                throw new ArgumentException("turnout action must be toggle or cancel.");
             }
 
             if (Target is null)

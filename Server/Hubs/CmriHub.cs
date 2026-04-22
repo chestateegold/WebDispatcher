@@ -29,46 +29,46 @@ namespace Server.Hubs
             await base.OnConnectedAsync();
         }
 
-        public Task SendControlMessage(FrontendControlMessagePayload payload)
+        public Task SendControlMessage(JsonElement payloadJson)
         {
-            if (payload is null)
-            {
-                throw new HubException("A control payload is required.");
-            }
-
-            try
-            {
-                payload.Validate();
-            }
-            catch (ArgumentException exception)
-            {
-                throw new HubException(exception.Message);
-            }
-
-            _logger.LogInformation("Received control message {MessageId} (type={ControlType})", payload.MessageId, payload.ControlType);
-
-            return Task.CompletedTask;
+            return HandleControlMessage(payloadJson, false);
         }
 
-        // Diagnostic method: accept raw JSON, log it, and attempt a tolerant deserialize
-        // Note: must not clash with the typed `SendControlMessage` SignalR method name
-        public Task SendControlMessageJson(JsonElement payloadJson)
+        private Task HandleControlMessage(JsonElement payloadJson, bool logRawPayload)
         {
             var raw = payloadJson.GetRawText();
-            _logger.LogInformation("Raw control payload: {Payload}", raw);
+
+            if (logRawPayload)
+            {
+                _logger.LogInformation("Raw control payload: {Payload}", raw);
+            }
 
             try
             {
+                if (!payloadJson.TryGetProperty("controlType", out var controlTypeElement))
+                {
+                    _logger.LogWarning("Control payload is missing controlType");
+                    return Task.CompletedTask;
+                }
+
+                var controlType = controlTypeElement.GetString();
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var payload = JsonSerializer.Deserialize<FrontendControlMessagePayload>(raw, options);
+
+                FrontendControlMessagePayload? payload = controlType switch
+                {
+                    "signal" => JsonSerializer.Deserialize<SignalControlMessagePayload>(raw, options),
+                    "turnout" => JsonSerializer.Deserialize<TurnoutControlMessagePayload>(raw, options),
+                    _ => null
+                };
+
                 if (payload is null)
                 {
-                    _logger.LogWarning("Deserialized payload was null");
+                    _logger.LogWarning("Unsupported controlType '{ControlType}'", controlType);
                     return Task.CompletedTask;
                 }
 
                 payload.Validate();
-                _logger.LogInformation("Deserialized control message {MessageId} (type={ControlType})", payload.MessageId, payload.ControlType);
+                _logger.LogInformation("Received control message {MessageId} (type={ControlType})", payload.MessageId, payload.ControlType);
             }
             catch (Exception ex)
             {

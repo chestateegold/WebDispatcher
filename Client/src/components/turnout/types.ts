@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'vue'
 
 import type { BitSourceLike, TurnoutMapping } from '@/types/cmri'
+import type { SignalControlVisualState } from '@/types/control'
 
 export type TurnoutDirection = 'left' | 'right'
 export type TurnoutOrientation = 'up' | 'down'
@@ -26,6 +27,12 @@ export interface TurnoutProps {
   orientation?: TurnoutOrientation
   mapping?: TurnoutMapping
   activeSignalId?: TurnoutSignalId | null
+  signalVisualStates?: Partial<Record<TurnoutSignalId, SignalControlVisualState>>
+  showHitboxOutlines?: boolean
+  controlsLocked?: boolean
+  switchPending?: boolean
+  switchInteractive?: boolean
+  switchThrown?: boolean
 }
 
 export interface TurnoutMappingInput {
