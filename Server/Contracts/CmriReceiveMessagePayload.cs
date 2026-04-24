@@ -1,13 +1,15 @@
 namespace Server.Contracts
 {
-    public sealed record CmriReceiveMessagePayload(byte[] Indications, byte[] DerivedIndications)
+    public sealed record CmriReceiveMessagePayload(byte[] Indications, byte[] DerivedIndications, byte[] Outputs)
     {
         public static CmriReceiveMessagePayload FromIndications(byte[] indications)
         {
-            var derivedIndications = new byte[indications.Length];
-            Array.Fill(derivedIndications, (byte)0b00000000);
+            return Create(indications, new byte[indications.Length], new byte[indications.Length]);
+        }
 
-            return new([.. indications], [.. derivedIndications]);
+        public static CmriReceiveMessagePayload Create(byte[] indications, byte[] derivedIndications, byte[] outputs)
+        {
+            return new([.. indications], [.. derivedIndications], [.. outputs]);
         }
     }
 }
