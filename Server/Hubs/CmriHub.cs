@@ -9,21 +9,23 @@ namespace Server.Hubs
     public class CmriHub : Hub
     {
         private readonly CmriState _cmriState;
+        private readonly LogicControllerService _logicControllerService;
         private readonly ILogger<CmriHub> _logger;
 
-        public CmriHub(CmriState cmriState, ILogger<CmriHub> logger)
+        public CmriHub(CmriState cmriState, LogicControllerService logicControllerService, ILogger<CmriHub> logger)
         {
             _cmriState = cmriState;
+            _logicControllerService = logicControllerService;
             _logger = logger;
         }
 
         public override async Task OnConnectedAsync()
         {
-            var lastSentData = _cmriState.GetLastSentData();
+            var lastPayload = _cmriState.GetLastPayload();
 
-            if (lastSentData is not null)
+            if (lastPayload is not null)
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", CmriReceiveMessagePayload.FromIndications(lastSentData));
+                await Clients.Caller.SendAsync("ReceiveMessage", lastPayload);
             }
 
             await base.OnConnectedAsync();
@@ -69,6 +71,11 @@ namespace Server.Hubs
 
                 payload.Validate();
                 _logger.LogInformation("Received control message {MessageId} (type={ControlType})", payload.MessageId, payload.ControlType);
+
+                var responsePayload = _logicControllerService.ApplyControl(payload);
+                _cmriState.SetLastPayload(responsePayload);
+
+                return Clients.All.SendAsync("ReceiveMessage", responsePayload);
             }
             catch (Exception ex)
             {

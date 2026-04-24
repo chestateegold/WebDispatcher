@@ -1,23 +1,35 @@
+using Server.Contracts;
+
 namespace Server.Services
 {
     public sealed class CmriState
     {
         private readonly object _syncRoot = new();
-        private byte[]? _lastSentData;
+        private CmriReceiveMessagePayload? _lastPayload;
 
-        public void SetLastSentData(byte[] data)
+        public void SetLastPayload(CmriReceiveMessagePayload payload)
         {
             lock (_syncRoot)
             {
-                _lastSentData = [.. data];
+                _lastPayload = CmriReceiveMessagePayload.Create(payload.Indications, payload.DerivedIndications, payload.Outputs);
             }
         }
 
-        public byte[]? GetLastSentData()
+        public CmriReceiveMessagePayload? GetLastPayload()
         {
             lock (_syncRoot)
             {
-                return _lastSentData is null ? null : [.. _lastSentData];
+                return _lastPayload is null
+                    ? null
+                    : CmriReceiveMessagePayload.Create(_lastPayload.Indications, _lastPayload.DerivedIndications, _lastPayload.Outputs);
+            }
+        }
+
+        public byte[]? GetLastIndications()
+        {
+            lock (_syncRoot)
+            {
+                return _lastPayload is null ? null : [.. _lastPayload.Indications];
             }
         }
     }
