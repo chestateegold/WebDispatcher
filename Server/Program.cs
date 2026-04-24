@@ -32,6 +32,7 @@ builder.Services.Configure<LayoutOptions>(builder.Configuration.GetSection(Layou
 builder.Services.AddSingleton<CmriState>();
 builder.Services.AddSingleton<CmriService>();
 builder.Services.AddSingleton<LayoutService>();
+builder.Services.AddSingleton<LogicControllerService>();
 builder.Services.AddHostedService<DevicePollingService>();
 
 var app = builder.Build();
