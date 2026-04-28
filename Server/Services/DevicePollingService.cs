@@ -15,7 +15,6 @@ namespace Server.Services
         private readonly ILogger<DevicePollingService> _logger;
         private readonly IHubContext<CmriHub> _hubContext;
         private readonly CmriService _cmriService;
-        private readonly CmriState _cmriState;
         private readonly LogicControllerService _logicControllerService;
         private readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(50); // adjust as needed
 
@@ -23,13 +22,11 @@ namespace Server.Services
             ILogger<DevicePollingService> logger,
             IHubContext<CmriHub> hubContext,
             CmriService cmriService,
-            CmriState cmriState,
             LogicControllerService logicControllerService)
         {
             _logger = logger;
             _hubContext = hubContext;
             _cmriService = cmriService;
-            _cmriState = cmriState;
             _logicControllerService = logicControllerService;
         }
 
@@ -45,10 +42,9 @@ namespace Server.Services
                     {
                         var data = await _cmriService.ReadAsync(stoppingToken);
 
-                        if (data is not null && !data.AsSpan().SequenceEqual(_cmriState.GetLastIndications()))
+                        if (data is not null && !data.AsSpan().SequenceEqual(_logicControllerService.GetCurrentIndications()))
                         {
                             var payload = _logicControllerService.ApplyIndications(data);
-                            _cmriState.SetLastPayload(payload);
 
                             _logger.LogInformation("Sending CMRI payload: {Payload}", string.Join(", ", data));
 
