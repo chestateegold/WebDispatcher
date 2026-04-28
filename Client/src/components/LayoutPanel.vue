@@ -16,20 +16,24 @@ import {
   isTurnoutSignalId,
   turnoutSignalIds,
 } from '@/control/messages'
-import { currentLayout } from '@/layout/currentLayout'
 import {
   getLayoutItemSize,
   isCrossoverLayoutItem,
   isDoubleTrackLayoutItem,
   isTurnoutLayoutItem,
+  type LayoutDefinition,
   type TurnoutLayoutItem,
 } from '@/layout/schema'
 import type { SignalControlVisualState } from '@/types/control'
 import { useCmriStore } from '@/stores/cmri'
 import { useClearRouteStates } from '@/composables/useClearRouteStates'
 
+const props = defineProps<{
+  layout: LayoutDefinition
+}>()
+
 const cmriStore = useCmriStore()
-const activeLayout = currentLayout
+const activeLayout = props.layout
 const showGridLines = false
 const showHitboxOutlines = false
 const signalPendingStates = ref<Record<string, Extract<SignalControlVisualState, 'request-pending' | 'cancel-pending'>>>({})

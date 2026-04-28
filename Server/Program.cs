@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Server.Hubs;
 using Server.Services;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +29,12 @@ builder.Services.AddSignalR()
     });
 
 builder.Services.Configure<CmriOptions>(builder.Configuration.GetSection("Cmri"));
+builder.Services.Configure<LayoutOptions>(builder.Configuration.GetSection(LayoutOptions.SectionName));
 
 // Register the CMRI-backed service and the background polling service.
-builder.Services.AddSingleton<CmriState>();
 builder.Services.AddSingleton<CmriService>();
+builder.Services.AddSingleton<LayoutService>();
+builder.Services.AddSingleton<LogicControllerService>();
 builder.Services.AddHostedService<DevicePollingService>();
 
 var app = builder.Build();
@@ -37,6 +42,28 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("DevCors");
+
+    var clientDistPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Client", "dist"));
+
+    if (Directory.Exists(clientDistPath))
+    {
+        var clientDistFileProvider = new PhysicalFileProvider(clientDistPath);
+
+        app.UseDefaultFiles(new DefaultFilesOptions
+        {
+            FileProvider = clientDistFileProvider
+        });
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = clientDistFileProvider
+        });
+
+        app.MapFallback(async context =>
+        {
+            await context.Response.SendFileAsync(Path.Combine(clientDistPath, "index.html"));
+        });
+    }
 }
 else
 {
@@ -46,6 +73,7 @@ else
 
 // Map your SignalR hub
 app.MapHub<CmriHub>("/cmriHub");
+app.MapGet("/api/layout", (LayoutService layoutService) => Results.Ok(layoutService.CurrentLayout));
 
 if (!app.Environment.IsDevelopment())
 {
