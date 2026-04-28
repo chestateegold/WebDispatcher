@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Server.Hubs;
 using Server.Services;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,28 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("DevCors");
+
+    var clientDistPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Client", "dist"));
+
+    if (Directory.Exists(clientDistPath))
+    {
+        var clientDistFileProvider = new PhysicalFileProvider(clientDistPath);
+
+        app.UseDefaultFiles(new DefaultFilesOptions
+        {
+            FileProvider = clientDistFileProvider
+        });
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = clientDistFileProvider
+        });
+
+        app.MapFallback(async context =>
+        {
+            await context.Response.SendFileAsync(Path.Combine(clientDistPath, "index.html"));
+        });
+    }
 }
 else
 {
