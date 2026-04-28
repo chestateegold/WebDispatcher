@@ -15,6 +15,7 @@ namespace Server.Services
         private byte[] _latestIndications = [];
         private byte[] _latestDerivedIndications = [];
         private byte[] _latestOutputs = [];
+        private bool _hasCurrentPayload;
 
         public LogicControllerService(LayoutService layoutService, ILogger<LogicControllerService> logger)
         {
@@ -51,7 +52,8 @@ namespace Server.Services
             lock (_syncRoot)
             {
                 _latestIndications = [.. indications];
-                Recompute();
+                Compute();
+                _hasCurrentPayload = true;
 
                 return CreatePayload();
             }
@@ -105,7 +107,8 @@ namespace Server.Services
                         signalControl.SentAt);
                 }
 
-                Recompute();
+                Compute();
+                _hasCurrentPayload = true;
 
                 return CreatePayload();
             }
@@ -119,7 +122,24 @@ namespace Server.Services
             }
         }
 
-        private void Recompute()
+        public CmriReceiveMessagePayload? TryGetCurrentPayload()
+        {
+            lock (_syncRoot)
+            {
+                return _hasCurrentPayload ? CreatePayload() : null;
+            }
+        }
+
+        //TODO: redundant, just use getcurrentpayload and extract indications from it
+        public byte[] GetCurrentIndications()
+        {
+            lock (_syncRoot)
+            {
+                return [.. _latestIndications];
+            }
+        }
+
+        private void Compute()
         {
             var derivedLength = GetRequiredArrayLength("derivedIndications", _latestIndications.Length);
             var outputsLength = GetRequiredArrayLength("outputs", _latestIndications.Length);

@@ -29,7 +29,6 @@ builder.Services.Configure<CmriOptions>(builder.Configuration.GetSection("Cmri")
 builder.Services.Configure<LayoutOptions>(builder.Configuration.GetSection(LayoutOptions.SectionName));
 
 // Register the CMRI-backed service and the background polling service.
-builder.Services.AddSingleton<CmriState>();
 builder.Services.AddSingleton<CmriService>();
 builder.Services.AddSingleton<LayoutService>();
 builder.Services.AddSingleton<LogicControllerService>();

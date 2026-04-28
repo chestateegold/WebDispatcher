@@ -130,3 +130,4 @@ vs/
 *.md
 !README.md
 !LICENSE.md
+/docs
