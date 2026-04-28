@@ -35,6 +35,9 @@ namespace Server.Contracts
         public LayoutMapping? Mapping { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public LayoutOutputMapping? Outputs { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TurnoutControlPointMetadata? ControlPoint { get; set; }
     }
 
@@ -63,6 +66,37 @@ namespace Server.Contracts
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public BitSourceLike? CrossingOccupied { get; set; }
+    }
+
+    public sealed class LayoutOutputMapping
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public TurnoutOutputMapping? Turnout { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SignalOutputMapping? Signal { get; set; }
+    }
+
+    public sealed class TurnoutOutputMapping
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public BitSource? SwitchPosition { get; set; }
+    }
+
+    public sealed class SignalOutputMapping
+    {
+        public List<SignalHeadOutputMapping> Heads { get; set; } = [];
+    }
+
+    public sealed class SignalHeadOutputMapping
+    {
+        public string HeadId { get; set; } = string.Empty;
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public BitSource? Bit0 { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public BitSource? Bit1 { get; set; }
     }
 
     public sealed class TurnoutControlPointMetadata

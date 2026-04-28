@@ -31,6 +31,30 @@
           "array": "derivedIndications"
         }
       },
+      "outputs": {
+        "turnout": {
+          "switchPosition": { "byte": 0, "bit": 0 }
+        },
+        "signal": {
+          "heads": [
+            {
+              "headId": "single-track",
+              "bit0": { "byte": 0, "bit": 2 },
+              "bit1": { "byte": 0, "bit": 3 }
+            },
+            {
+              "headId": "track-one",
+              "bit0": { "byte": 0, "bit": 4 },
+              "bit1": { "byte": 0, "bit": 5 }
+            },
+            {
+              "headId": "track-two",
+              "bit0": { "byte": 0, "bit": 6 },
+              "bit1": { "byte": 0, "bit": 7 }
+            }
+          ]
+        }
+      },
       "controlPoint": {
         "id": "turnout-one",
         "clearRouteSources": [{ "direction": "left" }, { "direction": "right" }]
@@ -88,6 +112,30 @@
           "byte": 0,
           "bit": 3,
           "array": "derivedIndications"
+        }
+      },
+      "outputs": {
+        "turnout": {
+          "switchPosition": { "byte": 1, "bit": 0 }
+        },
+        "signal": {
+          "heads": [
+            {
+              "headId": "single-track",
+              "bit0": { "byte": 1, "bit": 1 },
+              "bit1": { "byte": 1, "bit": 2 }
+            },
+            {
+              "headId": "track-one",
+              "bit0": { "byte": 1, "bit": 3 },
+              "bit1": { "byte": 1, "bit": 4 }
+            },
+            {
+              "headId": "track-two",
+              "bit0": { "byte": 1, "bit": 5 },
+              "bit1": { "byte": 1, "bit": 6 }
+            }
+          ]
         }
       },
       "controlPoint": {
